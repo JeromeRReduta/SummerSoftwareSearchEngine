@@ -1,0 +1,23 @@
+Notes - Project 1
+
+InvertedIndexBuilder/Handler/Factory/whatever
+
+	Doesn't actually help in creating InvIndex
+	What it does is parse a text file(s) for its stems, and stores it into invIndex
+
+	Could say it's a wordStemCollector
+
+	So let's rename it to wordStemCollector
+
+	Also it has a complex init process, so make builder pattern for this
+
+
+WordStemCollector:
+
+	private final InvertedIndex index;
+	private final Path filePath;
+
+	
+
+	private WordStemCollector(WordStemCollectorBuilder builder):
+		

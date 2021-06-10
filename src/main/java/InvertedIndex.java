@@ -1,6 +1,7 @@
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -25,19 +26,26 @@ public class InvertedIndex {
 		map = new TreeMap<>();
 	}
 	
+	/* NOTE: Shouldn't make a builder here, b/c the point isn't to create
+	a new thing with many complex things, but to populate an already existing
+	thing with data */
+	
+	
+	
+	
 	public void add(String stem, String pathName, int position) {
 		map.putIfAbsent(stem,  new TreeMap<>());
 		map.get(stem).putIfAbsent(pathName,  new TreeSet<>());
 		map.get(stem).get(pathName).add(position);
 	}
 	
-	public Set<String> get() {
-		return Collections.unmodifiableSet( map.keySet() );
+	public Map<String, TreeMap<String, TreeSet<Integer>>> get() {
+		return Collections.unmodifiableMap(map);
 	}
 	
-	public Set<String> get(String stem) {
+	public Map<String, TreeSet<Integer>> get(String stem) {
 		return map.get(stem) != null ?
-				Collections.unmodifiableSet( map.get(stem).keySet() ) : Collections.emptySet();
+				Collections.unmodifiableMap( map.get(stem) ) : Collections.emptyMap();
 	}
 	
 	public Set<Integer> get(String stem, String pathName) {

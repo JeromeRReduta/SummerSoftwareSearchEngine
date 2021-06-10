@@ -1,3 +1,5 @@
+import java.io.IOException;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 
@@ -22,7 +24,40 @@ public class Driver {
 		// store initial start time
 		Instant start = Instant.now();
 
-		// TODO Fill in and modify as needed
+		ArgumentMap argMap = new ArgumentMap(args);
+		InvertedIndex invIndex = new InvertedIndex();
+		
+		if (argMap.hasFlag("-text")) {
+			final Path TEXT = argMap.getPath("-text");
+			System.out.printf("TEXT IS %s\n", TEXT);
+			
+			try {
+				WordStemCollector collector = new WordStemCollector.Builder()
+						.readingFrom(TEXT).savingStemsTo(invIndex).build();
+				
+				collector.collectStems();
+			}
+			catch (NullPointerException e) {
+				System.err.println("IOException or NullPointerException");
+			}
+			catch (Exception e) {
+				System.err.println("eh");
+			}
+		}
+		if (argMap.hasFlag("-index")) {
+			final Path INDEX = argMap.getPath("-index", Path.of("index.json"));
+			try {
+				SearchJsonWriter.asInvertedIndex(invIndex, INDEX);
+			}
+			catch (IOException e) {
+				System.err.println("Ah");
+			}
+			catch(Exception e) {
+				System.err.println("Oh");
+			}
+		}
+		
+		
 
 		// calculate time elapsed and output
 		Duration elapsed = Duration.between(start, Instant.now());
