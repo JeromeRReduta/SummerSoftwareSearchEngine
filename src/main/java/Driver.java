@@ -28,12 +28,10 @@ public class Driver {
 		ArgumentMap argMap = new ArgumentMap(args);
 		InvertedIndex invIndex = new InvertedIndex();
 		
-		if (argMap.hasFlag("-text")) {
-			final Path TEXT = argMap.getPath("-text");
-			
+		if (argMap.hasFlag("-text")) { // Collect stems from file(s): argMap.getPath("-text") and store in invertedIndex
 			try {
 				WordStemCollector collector = new WordStemCollector.Builder()
-						.readingAllFilesFrom(TEXT).savingStemsTo(invIndex).build();
+						.readingAllFilesFrom( argMap.getPath("-text") ).savingStemsTo(invIndex).build();
 				
 				collector.collectStems();
 			}
@@ -44,10 +42,9 @@ public class Driver {
 				System.err.println("Unexpected error while collecting stems: " + e);
 			}
 		}
-		if (argMap.hasFlag("-index")) {
-			final Path INDEX = argMap.getPath("-index", Path.of("index.json"));
+		if (argMap.hasFlag("-index")) { // Print InvertedIndex data to file (in JSON format)
 			try {
-				SearchJsonWriter.asInvertedIndex(invIndex, INDEX);
+				SearchJsonWriter.asInvertedIndex(invIndex, argMap.getPath("-index", Path.of("index.json")) );
 			}
 			catch (IOException e) {
 				System.err.println("IOException: " + e);
@@ -56,8 +53,6 @@ public class Driver {
 				System.err.println("Unexpected error while writing JSON to file: " + e);
 			}
 		}
-		
-		
 
 		// calculate time elapsed and output
 		Duration elapsed = Duration.between(start, Instant.now());

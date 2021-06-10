@@ -13,7 +13,6 @@ import opennlp.tools.stemmer.snowball.SnowballStemmer;
  *
  */
 public class OneFileStemCollector {
-	
 	private final InvertedIndex index;
 	private final Stemmer stemmer;
 	private final Path filePath;
@@ -26,9 +25,7 @@ public class OneFileStemCollector {
 		position = builder.position;
 	}
 	
-	
 	public static class Builder {
-		
 		private InvertedIndex index;
 		private Stemmer stemmer;
 		private Path filePath;
@@ -57,9 +54,9 @@ public class OneFileStemCollector {
 	public void parseFile() throws IOException {
 		try ( BufferedReader reader = Files.newBufferedReader(filePath, StandardCharsets.UTF_8) ) {
 			String line;
-			
 			while ( (line = reader.readLine()) != null ) {
 				String[] parsedLine = TextParser.parse(line);
+				
 				for (String word : parsedLine) {
 					index.add( stemmer.stem(word).toString(), filePath.toString(), position++ );
 				}

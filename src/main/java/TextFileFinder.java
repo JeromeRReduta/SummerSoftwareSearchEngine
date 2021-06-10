@@ -17,7 +17,6 @@ import java.util.stream.Stream;
  */
 public class TextFileFinder {
 	
-	// Note: Local test won't pass b/c Github Desktop has protections, so can't just make a directory inside it - we're good otherwise
 	/**
 	 * A lambda function that returns true if the path is a file that ends in a
 	 * .txt or .text extension (case-insensitive). Useful for

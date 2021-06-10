@@ -28,9 +28,6 @@ public class InvertedIndex {
 	a new thing with many complex things, but to populate an already existing
 	thing with data */
 	
-	
-	
-	
 	public void add(String stem, String pathName, int position) {
 		map.putIfAbsent(stem,  new TreeMap<>());
 		map.get(stem).putIfAbsent(pathName,  new TreeSet<>());
@@ -47,8 +44,8 @@ public class InvertedIndex {
 	}
 	
 	public Set<Integer> get(String stem, String pathName) {
-		return map.get(stem) != null && map.get(stem).get(pathName) != null
-				? Collections.unmodifiableSet( map.get(stem).get(pathName) ) : Collections.emptySet();
+		return map.get(stem) != null && map.get(stem).get(pathName) != null ?
+				Collections.unmodifiableSet( map.get(stem).get(pathName) ) : Collections.emptySet();
 	}
 	
 	public boolean contains(String stem) {
@@ -81,7 +78,6 @@ public class InvertedIndex {
 		return map.toString();
 	}
 	
-	//TODO: Search logic comes later
-	
+	//TODO: Search logic in P2
 	
 }

@@ -32,14 +32,16 @@ public class SimpleJsonWriter {
 	public static void asArray(Collection<Integer> elements, Writer writer, int level) throws IOException {
 		Iterator<Integer> it = elements.iterator();
 		
-		writer.write("["); // Case: head
+		writer.write("["); // Start of array and head value
 		if (it.hasNext()) {
 			writer.write( indentStringBy(it.next().toString(), level + 1) );
 		}
-		while (it.hasNext()) { // Case: all other values
+		
+		while (it.hasNext()) { // All other values
 			writer.write( "," + indentStringBy(it.next().toString(), level + 1) );
 		}
-		writer.write("\n"); // Tail
+		
+		writer.write("\n"); // End of list
 		indent("]", writer, level);
 	}
 
@@ -54,19 +56,20 @@ public class SimpleJsonWriter {
 	public static void asObject(Map<String, Integer> elements, Writer writer, int level) throws IOException {
 		var entries = elements.entrySet().iterator();
 		
-		writer.write("{");
-		
-		if (entries.hasNext()) { // Case: head
+		writer.write("{"); // Start of list 
+		if (entries.hasNext()) {
 			var entry = entries.next();
 			writer.write( indentStringBy('"' + entry.getKey() + '"' + ": " + entry.getValue().toString(),
 					level + 1 ));
 		}
-		while (entries.hasNext()) { // Case: other values
+		
+		while (entries.hasNext()) { // All other values
 			var entry = entries.next();
 			writer.write( "," + indentStringBy('"' + entry.getKey() + '"' + ": " + entry.getValue().toString(),
 					level + 1 ));
 		}
-		writer.write("\n"); // Tail
+		
+		writer.write("\n"); // End of list
 		indent("}", writer, level);
 	}
 
@@ -80,28 +83,25 @@ public class SimpleJsonWriter {
 	 * @param level the initial indent level
 	 * @throws IOException if an IO error occurs
 	 */
-	public static void asNestedArray(Map<String, ? extends Collection<Integer>> elements, 
-			Writer writer, int level) throws IOException {
-
+	public static void asNestedArray(Map<String, ? extends Collection<Integer>> elements, Writer writer, int level) throws IOException {
 		var entries = elements.entrySet().iterator();
 		
-		writer.write("{");
-		
-		if (entries.hasNext()) { // Head case
+		writer.write("{"); // Start of list
+		if (entries.hasNext()) { 
 			var entry = entries.next();
 			writer.write( indentStringBy('"' + entry.getKey() + '"' + ": ",
 					level + 1));
-
 			asArray(entry.getValue(), writer, level + 1);
 		}
-		while (entries.hasNext()) { // All others
+		
+		while (entries.hasNext()) { // All other values
 			var entry = entries.next();
 			writer.write( "," + indentStringBy('"' + entry.getKey() + '"' + ": ",
 					level + 1));
-
 			asArray(entry.getValue(), writer, level + 1);
 		}
-		writer.write("\n"); // Tail
+		
+		writer.write("\n"); // End of list
 		indent("}", writer, level);
 	}
 
@@ -276,5 +276,4 @@ public class SimpleJsonWriter {
 			}
 		}
 	}
-	
 }

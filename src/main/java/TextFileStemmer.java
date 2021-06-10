@@ -149,5 +149,4 @@ public class TextFileStemmer {
 			return stemSet;
 		}
 	}
-	
 }
