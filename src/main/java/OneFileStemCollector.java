@@ -25,32 +25,58 @@ public class OneFileStemCollector {
 		position = builder.position;
 	}
 	
+	/**
+	 * Builder pattern
+	 * @author JRRed
+	 *
+	 */
 	public static class Builder {
 		private InvertedIndex index;
 		private Stemmer stemmer;
 		private Path filePath;
 		private int position;
 		
+		/**
+		 * Constructor. The stemmer and position are always the same.
+		 */
 		public Builder() {
 			stemmer = new SnowballStemmer(SnowballStemmer.ALGORITHM.ENGLISH);
 			position = 1;
 		}
 		
+		/**
+		 * Sets the builder's file path
+		 * @param filePath file path the OneFileStemCollector will be reading from
+		 * @return the builder
+		 */
 		public Builder readingFrom(Path filePath) {
 			this.filePath = filePath;
 			return this;
 		}
 		
+		/**
+		 * Sets the builder's InvertedIndex
+		 * @param index the InvertedIndex that the OneFileStemCollector will be saving its stems to
+		 * @return the builder
+		 */
 		public Builder savingStemsTo(InvertedIndex index) {
 			this.index = index;
 			return this;
 		}
 		
+		/**
+		 * Creates a OneFileStemCollector with information from this builder
+		 * @return a OneFileStemCollector with information from this builder
+		 */
 		public OneFileStemCollector build() {
 			return new OneFileStemCollector(this);
 		}
 	}
 	
+	/**
+	 * Parses one file, collecting its word stems and saving it to the InvertedIndex
+	 * @throws IOException In case of IOError while reading
+	 */
 	public void parseFile() throws IOException {
 		try ( BufferedReader reader = Files.newBufferedReader(filePath, StandardCharsets.UTF_8) ) {
 			String line;

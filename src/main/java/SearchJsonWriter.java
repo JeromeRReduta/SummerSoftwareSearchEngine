@@ -9,6 +9,13 @@ import java.nio.file.Path;
  */
 public class SearchJsonWriter extends SimpleJsonWriter {
 	
+	/**
+	 * Writes the elements as an InvertedIndex, in JSON format
+	 * @param index InvertedIndex
+	 * @param writer writer
+	 * @param level indent level
+	 * @throws IOException in case of IOError
+	 */
 	public static void asInvertedIndex(InvertedIndex index, Writer writer, int level) throws IOException {
 		if (index == null) return;
 		
@@ -32,11 +39,22 @@ public class SearchJsonWriter extends SimpleJsonWriter {
 		writer.write("\n"); // End of list
 		indent("}", writer, level);
 	}
-		
+	
+	/**
+	 * {@link #asInvertedIndex(InvertedIndex, Writer, int)} for outputting to file
+	 * @param index InvertedIndex
+	 * @param path file name
+	 * @throws IOException in case of IOError
+	 */
 	public static void asInvertedIndex(InvertedIndex index, Path path) throws IOException {
 		FunctionalWriter.writeToFile(index, path, (elem, writer) -> asInvertedIndex(elem, writer, 0));
 	}
 	
+	/**
+	 * {@link #asInvertedIndex(InvertedIndex, Writer, int)} for outputting as String
+	 * @param index InvertedIndex
+	 * @return InvertedIndex, as a String in JSON format
+	 */
 	public static String asInvertedIndex(InvertedIndex index) {
 		return FunctionalWriter.writeToString(index, (elem, writer) -> asInvertedIndex(elem, writer, 0));
 	}

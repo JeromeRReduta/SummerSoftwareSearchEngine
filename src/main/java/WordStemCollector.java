@@ -28,9 +28,18 @@ public class WordStemCollector {
 		private InvertedIndex index;
 		private List<Path> filePaths;
 		
+		/**
+		 * Constructor. Please use the builder methods to set data for WordStemCollector.
+		 */
 		public Builder() {
 		}
 		
+		/**
+		 * If inputPath is a directory, sets filePaths to all files under that directory. If inputPath is a file, sets filePaths to
+		 * just that file. Else, sets filePaths to null.
+		 * @param inputPath a path that may be a file or directory
+		 * @return the builder
+		 */
 		public Builder readingAllFilesFrom(Path inputPath) {
 			try {
 				if (Files.isDirectory(inputPath)) {
@@ -42,30 +51,41 @@ public class WordStemCollector {
 				else {
 					filePaths = null;
 				}
-				return this;
 			}
 			catch (IOException e) {
 				System.err.println("IOException - WordStemCollector.Builder()");
 				filePaths = null;
-				return this;
 			}
 			catch(Exception e) {
 				System.err.println("Unknown exception - WordStemCollector.Builder() " + e);
 				filePaths = null;
-				return this;
 			}
+			
+			return this;
 		}
 		
+		/**
+		 * Sets the builder's invertedIndex
+		 * @param index InvertedIndex that the WordStemCollector will save its stems to
+		 * @return the builder
+		 */
 		public Builder savingStemsTo(InvertedIndex index) {
 			this.index = index;
 			return this;
 		}
 		
+		/**
+		 * Creates a WordStemCollector using this builder
+		 * @return A WordStemCollector using this builder
+		 */
 		public WordStemCollector build() {
 			return new WordStemCollector(this);
 		}
 	}
 	
+	/**
+	 * Collects stems from all files the collector has received, and saves it to its InvertedIndex
+	 */
 	public void collectStems() {
 		for (Path filePath : filePaths) {
 			try {
@@ -76,12 +96,10 @@ public class WordStemCollector {
 			}
 			catch(IOException e) {
 				System.err.println("IOException - WordStemCollector");
-				
 			}
 			catch(Exception e)  {
 				System.err.println("Unknown exception - WordStemCollector " + e);
 			}
-			
 		}
 	}
 }
