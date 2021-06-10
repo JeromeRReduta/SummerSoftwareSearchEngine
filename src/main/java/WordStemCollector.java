@@ -31,7 +31,7 @@ public class WordStemCollector {
 		public Builder() {
 		}
 		
-		public Builder readingFrom(Path inputPath) {
+		public Builder readingAllFilesFrom(Path inputPath) {
 			try {
 				if (Files.isDirectory(inputPath)) {
 					filePaths = TextFileFinder.list(inputPath);

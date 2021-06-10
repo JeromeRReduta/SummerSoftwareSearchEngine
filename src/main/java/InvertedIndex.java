@@ -1,5 +1,3 @@
-import java.io.IOException;
-import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
@@ -81,10 +79,6 @@ public class InvertedIndex {
 	@Override
 	public String toString() {
 		return map.toString();
-	}
-	
-	public void toFile(final Path path) throws IOException {
-		//TODO: add toFile
 	}
 	
 	//TODO: Search logic comes later

@@ -23,10 +23,6 @@ import opennlp.tools.stemmer.snowball.SnowballStemmer;
 public class TextFileStemmer {
 	/** The default stemmer algorithm used by this class. */
 	public static final SnowballStemmer.ALGORITHM DEFAULT = SnowballStemmer.ALGORITHM.ENGLISH;
-	// Bubba
-	
-	//TODO: Find a way to reduce num of args, especially on bottom funcs, w/o slowing down performance
-	// Placeholder
 
 	/**
 	 * Returns a list of cleaned and stemmed words parsed from the provided line.

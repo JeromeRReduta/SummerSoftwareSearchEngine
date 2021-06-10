@@ -1,5 +1,4 @@
 import java.text.Normalizer;
-import java.util.Arrays;
 import java.util.regex.Pattern;
 
 /**
@@ -51,23 +50,5 @@ public class TextParser {
 	 */
 	public static String[] parse(String text) {
 		return split(clean(text));
-	}
-
-	/**
-	 * Demonstrates this class.
-	 * 
-	 * @param args unused
-	 */
-	public static void main(String[] args) {
-		String text = """
-				Sally Sue...\t sells 76 sea-shells
-				at THE sEa_shorE soirée!""";
-
-		System.out.println("Cleaned:");
-		System.out.println(clean(text));
-
-		System.out.println();
-		System.out.println(" Split: " + Arrays.toString(split(text)));
-		System.out.println("Parsed: " + Arrays.toString(parse(text)));
 	}
 }

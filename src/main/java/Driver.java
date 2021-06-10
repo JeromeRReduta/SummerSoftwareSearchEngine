@@ -33,7 +33,7 @@ public class Driver {
 			
 			try {
 				WordStemCollector collector = new WordStemCollector.Builder()
-						.readingFrom(TEXT).savingStemsTo(invIndex).build();
+						.readingAllFilesFrom(TEXT).savingStemsTo(invIndex).build();
 				
 				collector.collectStems();
 			}
@@ -76,6 +76,6 @@ public class Driver {
 	 * name. For example, "TaxiDriver" is what we would name a driver class that
 	 * just sets up and calls the "Taxi" class.
 	 *
-	 * TODO: Delete this after reading.
+	 * Note: Keeping this for future reference
 	 */
 }
