@@ -38,10 +38,10 @@ public class Driver {
 				collector.collectStems();
 			}
 			catch (NullPointerException e) {
-				System.err.println("IOException or NullPointerException");
+				System.err.println("IOException or NullPointerException: " + e);
 			}
 			catch (Exception e) {
-				System.err.println("eh");
+				System.err.println("Unexpected error while collecting stems: " + e);
 			}
 		}
 		if (argMap.hasFlag("-index")) {
@@ -50,10 +50,10 @@ public class Driver {
 				SearchJsonWriter.asInvertedIndex(invIndex, INDEX);
 			}
 			catch (IOException e) {
-				System.err.println("Ah");
+				System.err.println("IOException: " + e);
 			}
 			catch(Exception e) {
-				System.err.println("Oh");
+				System.err.println("Unexpected error while writing JSON to file: " + e);
 			}
 		}
 		

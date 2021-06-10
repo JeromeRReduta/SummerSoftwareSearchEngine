@@ -183,7 +183,7 @@ public class ArgumentMap {
 			return defaultValue;
 		}
 		catch (Exception e) {
-			System.err.println("Unexpected error: " + e);
+			System.err.println("Unexpected error in argMap.getPath(): " + e);
 			return defaultValue;
 		}
 	}
@@ -207,7 +207,7 @@ public class ArgumentMap {
 			return defaultValue;
 		}
 		catch(Exception e) {
-			System.err.println("Found unknown exception!\n" + e);
+			System.err.println("Unexpected error in argMap.getInteger(): " + e);
 			return defaultValue;
 		}
 	}

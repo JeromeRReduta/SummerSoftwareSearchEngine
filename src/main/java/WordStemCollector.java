@@ -50,7 +50,7 @@ public class WordStemCollector {
 				return this;
 			}
 			catch(Exception e) {
-				System.err.println("Unknown exception - WordStemCollector.Builder()");
+				System.err.println("Unknown exception - WordStemCollector.Builder() " + e);
 				filePaths = null;
 				return this;
 			}
@@ -75,11 +75,11 @@ public class WordStemCollector {
 				oneFileCollector.parseFile();
 			}
 			catch(IOException e) {
-				System.err.println("Oops - IO Error - WordStemCollector");
+				System.err.println("IOException - WordStemCollector");
 				
 			}
 			catch(Exception e)  {
-				System.err.println("Oops - unknown error - WordStemCollector");
+				System.err.println("Unknown exception - WordStemCollector " + e);
 			}
 			
 		}
