@@ -24,12 +24,12 @@ public class Driver {
 		// store initial start time
 		Instant start = Instant.now();
 
+		// Creating objects
 		ArgumentMap argMap = new ArgumentMap(args);
 		InvertedIndex invIndex = new InvertedIndex();
 		
 		if (argMap.hasFlag("-text")) {
 			final Path TEXT = argMap.getPath("-text");
-			System.out.printf("TEXT IS %s\n", TEXT);
 			
 			try {
 				WordStemCollector collector = new WordStemCollector.Builder()

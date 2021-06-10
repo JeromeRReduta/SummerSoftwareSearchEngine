@@ -1,12 +1,7 @@
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-
-import opennlp.tools.stemmer.Stemmer;
-import opennlp.tools.stemmer.snowball.SnowballStemmer;
 
 /**
  * Class whose sole responsibility is to parse text files for word stems and store them in an inverted index
@@ -71,30 +66,13 @@ public class WordStemCollector {
 		}
 	}
 	
-	public void testStuff() {
-		System.out.println("INDEX: " + index);
-		System.out.println("FILE PATHS: " + filePaths);
-	}
-	
 	public void collectStems() {
 		for (Path filePath : filePaths) {
-
-			try ( BufferedReader reader = Files.newBufferedReader(filePath, StandardCharsets.UTF_8) ) {
+			try {
+				OneFileStemCollector oneFileCollector = new OneFileStemCollector.Builder()
+						.readingFrom(filePath).savingStemsTo(index).build();
 				
-				/** Turn this whole region into an object */
-				String location = filePath.toString();
-				Stemmer stemmer = new SnowballStemmer(SnowballStemmer.ALGORITHM.ENGLISH);
-				int position = 1;
-				String line;
-				
-				while ((line = reader.readLine()) != null) {
-					String[] parsedLine = TextParser.parse(line);
-					for (String word : parsedLine) {
-						index.add( stemmer.stem(word).toString(), location,  position++ );
-					}
-				}
-				
-				/* End region */
+				oneFileCollector.parseFile();
 			}
 			catch(IOException e) {
 				System.err.println("Oops - IO Error - WordStemCollector");
@@ -105,7 +83,5 @@ public class WordStemCollector {
 			}
 			
 		}
-	
-		// TODO: Do rest of stem collection
 	}
 }
