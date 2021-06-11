@@ -20,4 +20,24 @@ WordStemCollector:
 	
 
 	private WordStemCollector(WordStemCollectorBuilder builder):
+		index = builder.index;
+		filePath = builder.filePath;
+
+
+
+	public static class WordStemCollectorBuilder:
+		private InvertedIndex index;
+		private Path filePath;
+
+		public WordStemCollectorBuilder():
+			set all to null
+
+		public parsingFile(Path filePath):
+			set this.filePath to filePath
+
+		public savingTo(InvIndex index):
+			this.index = index;
+
+		public build():
+			return new WordStemCollector(this);
 		

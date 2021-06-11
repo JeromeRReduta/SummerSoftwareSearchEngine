@@ -13,11 +13,22 @@ import opennlp.tools.stemmer.snowball.SnowballStemmer;
  *
  */
 public class OneFileStemCollector {
+	/** InvertedIndex this collector will store its stems to */
 	private final InvertedIndex index;
+	
+	/** Stemmer this collector will use */
 	private final Stemmer stemmer;
+	
+	/** the one file path this collector will read from */
 	private final Path filePath;
+	
+	/** tells us we're on the nth stem (e.g. if position = 5, we're on the 5th stem) */
 	private int position;
 	
+	/**
+	 * Constructor - please use builder to create new instances of this class
+	 * @param builder this class's builder pattern
+	 */
 	private OneFileStemCollector(OneFileStemCollector.Builder builder) {
 		index = builder.index;
 		stemmer = builder.stemmer;
@@ -31,9 +42,16 @@ public class OneFileStemCollector {
 	 *
 	 */
 	public static class Builder {
+		/** InvertedIndex this collector will store its stems to */
 		private InvertedIndex index;
+		
+		/** Stemmer this collector will use */
 		private Stemmer stemmer;
+		
+		/** the one file path this collector will read from */
 		private Path filePath;
+		
+		/** tells us we're on the nth stem (e.g. if position = 5, we're on the 5th stem) */
 		private int position;
 		
 		/**

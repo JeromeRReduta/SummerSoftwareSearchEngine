@@ -10,9 +10,16 @@ import java.util.List;
  */
 public class WordStemCollector {
 
+	/** InvertedIndex this collector will store its data to */
 	private final InvertedIndex index;
+	
+	/** list of file paths this collector will read from */
 	private final List<Path> filePaths;
 	
+	/**
+	 * Constructor - use builder instead
+	 * @param builder
+	 */
 	private WordStemCollector(WordStemCollector.Builder builder) {
 		index = builder.index;
 		filePaths = builder.filePaths;
@@ -25,7 +32,10 @@ public class WordStemCollector {
 	 */
 	public static class Builder {
 		
+		/** InvertedIndex the collector will store its data to */
 		private InvertedIndex index;
+		
+		/** list of file paths this collector will read from */
 		private List<Path> filePaths;
 		
 		/**
