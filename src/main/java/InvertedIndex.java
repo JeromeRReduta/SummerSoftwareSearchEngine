@@ -133,6 +133,4 @@ public class InvertedIndex {
 		return map.toString();
 	}
 	
-	//TODO: Search logic in P2
-	
 }
