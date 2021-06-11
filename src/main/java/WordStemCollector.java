@@ -18,7 +18,7 @@ public class WordStemCollector {
 	
 	/**
 	 * Constructor - use builder instead
-	 * @param builder
+	 * @param builder This class's builder pattern
 	 */
 	private WordStemCollector(WordStemCollector.Builder builder) {
 		index = builder.index;
