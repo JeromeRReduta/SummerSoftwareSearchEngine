@@ -36,12 +36,15 @@ public class Driver {
 				collector.collectStems();
 			}
 			catch (NullPointerException e) {
+				// TODO Missing required path value for the -text flag.
 				System.err.println("IOException or NullPointerException: " + e);
 			}
 			catch (Exception e) {
+				// TODO Unable to build the inverted index from path: + argMap.getString(-text)
 				System.err.println("Unexpected error while collecting stems: " + e);
 			}
 		}
+		
 		if (argMap.hasFlag("-index")) { // Print InvertedIndex data to file (in JSON format)
 			try {
 				SearchJsonWriter.asInvertedIndex(invIndex, argMap.getPath("-index", Path.of("index.json")) );

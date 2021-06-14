@@ -40,6 +40,17 @@ public class InvertedIndex {
 		map.get(stem).get(pathName).add(position);
 	}
 	
+	/*
+	 * TODO
+	 * 
+	 * get() --> return an unmodifiable keyset (all the words)
+	 * 
+	 * get(String word) --> return the inner map keyset (all the locations for a word)
+	 * 
+	 * get(String word, String location) --> return the unmodifiable inner treeset
+	 */
+	
+	// TODO Remove, breaks encapsulation
 	/**
 	 * Returns an unmodifiable view of the index data
 	 * @return An unmodifiable view of the index's data
@@ -48,6 +59,7 @@ public class InvertedIndex {
 		return Collections.unmodifiableMap(map);
 	}
 	
+	// TODO Remove, replace with a safer version
 	/**
 	 * Returns an unmodifiable view of the inner map containing every file that has the given word stem
 	 * 
@@ -59,6 +71,7 @@ public class InvertedIndex {
 				Collections.unmodifiableMap( map.get(stem) ) : Collections.emptyMap();
 	}
 	
+	// TODO Maybe reuse your contains(stem, pathName) to reuse some of that code
 	/**
 	 * Returns an unmodifiable view of the set of position nums a given file has for a given word stem
 	 * @param stem word stem
@@ -101,6 +114,24 @@ public class InvertedIndex {
 				map.get(stem).get(pathName).contains(position);
 	}
 	
+	/*
+	 * TODO Either give each method a different meaningful name or keep it the 
+	 * same with the different params
+	 * 
+	 * size()
+	 * size(String stem(
+	 * size(String stem, String pathName)
+	 * 
+	 * -or-
+	 * 
+	 * numWords()
+	 * numLocations(String word)
+	 * numPositions(String word, String location)
+	 * 
+	 * Careful about "stem" vs word
+	 * and "pathName" vs location
+	 */
+	
 	/**
 	 * Returns the number of stems in the index
 	 * @return The number of stems in the index
@@ -133,4 +164,9 @@ public class InvertedIndex {
 		return map.toString();
 	}
 	
+	/* TODO Try this instead
+	public void toJson(Path path) throw IOException {
+		SearchJsonWriter.asInvertedIndex(this.map, path);
+	}
+	*/
 }

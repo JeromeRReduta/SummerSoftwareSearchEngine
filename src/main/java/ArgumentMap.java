@@ -44,8 +44,8 @@ public class ArgumentMap {
 	 */
 	public void parse(String[] args) {
 		/* Error checking */
-		if (args == null) throw new NullPointerException("args is null");
-		if (args.length == 0) return; 
+		if (args == null) throw new NullPointerException("args is null"); // TODO Remove
+		if (args.length == 0) return;
 		
 		/* Parsing */
 		if ( isFlag(args[0]) ) { // Head case: first string is a flag
@@ -179,9 +179,11 @@ public class ArgumentMap {
 		try {
 			return Path.of( map.get(flag) );
 		}
+		// TODO catch (Exception e)
 		catch (NullPointerException | InvalidPathException e) {
 			return defaultValue;
 		}
+		// TODO Remove this block
 		catch (Exception e) {
 			System.err.println("Unexpected error in argMap.getPath(): " + e);
 			return defaultValue;
@@ -203,6 +205,7 @@ public class ArgumentMap {
 		try {
 			return Integer.parseInt( map.get(flag) );
 		}
+		// TODO Combine the catch blocks
 		catch(NullPointerException | NumberFormatException e) {
 			return defaultValue;
 		}

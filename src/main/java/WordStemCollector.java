@@ -3,6 +3,23 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
+// TODO Combine OneFileStemCollector and WorDStemCollector into one class
+
+/*
+ * TODO
+ * 
+ * Don't really need the inner class in this case
+ * 
+ * private final InvertedIndex index;
+ * 
+ * one method that knows how to start everything off
+ * 	takes in a path, decides whether it needs to list that path or call the other method
+ * 
+ * one method that handles building from a single file at a time
+ * 
+ * both methods should throw those exceptions 
+ */
+
 /**
  * Class whose sole responsibility is to parse text files for word stems and store them in an inverted index
  * @author JRRed
@@ -14,7 +31,7 @@ public class WordStemCollector {
 	private final InvertedIndex index;
 	
 	/** list of file paths this collector will read from */
-	private final List<Path> filePaths;
+	private final List<Path> filePaths; // TODO Local when needed
 	
 	/**
 	 * Constructor - use builder instead
