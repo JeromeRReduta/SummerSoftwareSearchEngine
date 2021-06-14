@@ -16,6 +16,7 @@ public class SearchJsonWriter extends SimpleJsonWriter {
 	 * @param level indent level
 	 * @throws IOException in case of IOError
 	 */
+	// TODO public static void asInvertedIndex(TreeMap<String, TreeMap<String, TreeSet<Integer>>> index, Writer writer, int level) throws IOException {
 	public static void asInvertedIndex(InvertedIndex index, Writer writer, int level) throws IOException {
 		if (index == null) return;
 		
