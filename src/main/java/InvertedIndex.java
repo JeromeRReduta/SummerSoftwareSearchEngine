@@ -1,6 +1,7 @@
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -16,7 +17,10 @@ public class InvertedIndex {
 	/**
 	 * Index data structure - "innermap" is TreeMap: String to (TreeSet: Integer)
 	 */
-	private final TreeMap<String, TreeMap<String, TreeSet<Integer>>> map;
+	private final Map<String, TreeMap<String, TreeSet<Integer>>> map;
+	
+	/** map tracking how many strings are in each location */
+	private final Map<String, Integer> stringCount;
 	
 	/**
 	 * Constructor
@@ -26,6 +30,7 @@ public class InvertedIndex {
 	 */
 	public InvertedIndex() {
 		map = new TreeMap<>();
+		stringCount = new TreeMap<>();
 	}
 	
 	/**
@@ -38,6 +43,8 @@ public class InvertedIndex {
 		map.putIfAbsent(str,  new TreeMap<>());
 		map.get(str).putIfAbsent(location,  new TreeSet<>());
 		map.get(str).get(location).add(position);
+		
+		stringCount.merge(location,  position, Math::max);
 	}
 	
 	/**
@@ -68,6 +75,23 @@ public class InvertedIndex {
 	public Set<Integer> getPositionsOfStringInLocation(String str, String location) {
 		return contains(str, location)
 				? Collections.unmodifiableSet( map.get(str).get(location) ) : Collections.emptySet();
+	}
+	
+	/**
+	 * Returns an unmodifiable view of the number of times each string appears in the index
+	 * @return An unmodifiable view of the number of times each string appears in the index
+	 */
+	public Map<String, Integer> getStringCount() {
+		return Collections.unmodifiableMap(stringCount);
+	}
+	
+	/**
+	 * Returns how many times a given string appears in the index
+	 * @param location location
+	 * @return How many times a given string appears in the index
+	 */
+	public int numOfTimesStringAppearsInLocation(String location) {
+		return stringCount.get(location) != null ? stringCount.get(location) : 0;
 	}
 	
 	/**
@@ -143,9 +167,26 @@ public class InvertedIndex {
 	/**
 	 * Creates a JSON version of this index, output to a path
 	 * @param path path
-	 * @throws IOException In case IOError occurs
+	 * @throws IOException In case IO Error occurs
 	 */
 	public void toJson(Path path) throws IOException {
 		SearchJsonWriter.asStringMapStringMapIntCollection(map, path);
+	}
+	
+	/**
+	 * Creates a JSON version of the string count map, as a string
+	 * @return A JSON version of the string count map, as a string
+	 */
+	public String stringCountsToJson() {
+		return SimpleJsonWriter.asObject(stringCount);
+	}
+	
+	/**
+	 * Outputs a JSON version of the string count map to a file
+	 * @param path file path
+	 * @throws IOException In case IO Error occurs
+	 */
+	public void stringCountsToJson(Path path) throws IOException {
+		SimpleJsonWriter.asObject(stringCount, path);
 	}
 }

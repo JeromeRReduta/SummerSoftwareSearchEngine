@@ -1,7 +1,13 @@
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * Class responsible for running this project based on the provided command-line
@@ -13,6 +19,7 @@ import java.time.Instant;
  */
 public class Driver {
 
+	// Note: THIS IS PROJECT 2 BRANCH - SWITCH TO MAIN ONE ONCE DESIGN PASSES
 	/**
 	 * Initializes the classes necessary based on the provided command-line
 	 * arguments. This includes (but is not limited to) how to build or search an
@@ -43,6 +50,42 @@ public class Driver {
 			}
 		}
 		
+		if (argMap.hasFlag("-query")) {
+			final Path QUERY = argMap.getPath("-query");
+			
+			try {
+				BufferedReader reader = Files.newBufferedReader(QUERY, StandardCharsets.UTF_8);
+				Set<TreeSet<String>> uniqueQueries = new HashSet<>();
+				String line;
+				
+				while ( (line = reader.readLine()) != null) {
+					TreeSet<String> queries = TextFileStemmer.uniqueStems(line);
+					
+					if ( !queries.isEmpty() ) {
+						uniqueQueries.add(queries);
+					}
+					
+				}
+				
+				for (TreeSet<String> query : uniqueQueries) {
+					System.out.println(query);
+					// Add <queryString(query), index.search(query)> to resultsMap
+					
+					// Note: Is this efficient at all?
+					// Above approach is horrendously memory inefficient - if you have a million unique query strings, have to create a TreeSet with a million values before processing
+					// Instead, just do approach similar to fall project
+				}
+				
+			}
+			catch (NullPointerException e) {
+				System.err.printf("Error: query path is missing or invalid: %s%n", QUERY);
+			}
+			catch (Exception e) {
+				System.out.println(e);
+				System.err.printf("Error: Could not search inverted index with path: %s%n", QUERY);
+			}
+		}
+		
 		if (argMap.hasFlag("-index")) { // Print InvertedIndex data to file (in JSON format)
 			final Path INDEX = argMap.getPath( "-index", Path.of("index.json") );
 			
@@ -54,6 +97,20 @@ public class Driver {
 			}
 			catch(Exception e) {
 				System.err.printf("Error: Could not output inverted index data to file: %s%n", INDEX);
+			}
+		}
+		
+		if (argMap.hasFlag("-counts")) { // Prints file string count data to file (in JSON format)
+			final Path COUNTS = argMap.getPath( "-counts", Path.of("counts.json") );
+			
+			try {
+				invIndex.stringCountsToJson(COUNTS);
+			}
+			catch(IOException e) {
+				System.err.printf("Error: Error occurred while dealing with path: %s%n", COUNTS);
+			}
+			catch(Exception e) {
+				System.err.printf("Error: Could not output string count data to file: %s%n", COUNTS);
 			}
 		}
 
