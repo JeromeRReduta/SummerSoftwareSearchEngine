@@ -1,0 +1,48 @@
+Code Review
+
+Questions:
+	1) How to Builder Pattern?
+		- Want to make it easy for dev to know what each parameter does, but all of them are mandatory
+		- Do I just do 4 arguments w/ no description?
+		- Do I put null checks 
+
+	2) Use of whitespace
+		Is method( otherMethod() ) okay?
+
+Exception output:
+	Driver:
+		Only file that interacts w/ user
+		Shouldn't throw exceptions - only deal w/ them
+		B/c it's from the user, EXCEPTION OUTPUT SHOULD BE FOR USERS, NOT FOR DEVS
+Exception handling:
+	If exception cases all do the same thing, just put them in one
+		catch (Exception e)
+
+Unmodifiable
+	Can't safely return nested data - only outer layer is unmodifiable - inner one is
+	
+	unmodifiable keySets and toJson() from last project was the right idea
+
+Note: %n is portable across platforms, \n is not (from https://stackoverflow.com/questions/1883345/whats-up-with-javas-n-in-printf)
+
+
+Have to make all instances of "stem" -> "str"
+
+
+New WordStemCollector:
+
+
+
+Goal: Put all word stem collection logic into one file 
+(Integrating OneFileCollector into this file)
+
+
+
+WordStemCollector:
+	private final InvertedIndex index;
+
+	private WordStemCollector(InvertedIndex index)
+
+	public static WordStemCollector savingStemsTo(InvertedIndex index):
+		return new WordStemCollector(index);
+

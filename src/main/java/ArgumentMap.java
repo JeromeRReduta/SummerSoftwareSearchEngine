@@ -40,9 +40,9 @@ public class ArgumentMap {
 	 * overwritten.
 	 *
 	 * @param args the command line arguments to parse
+	 * @note Will already throw NullPointerException if args is null, so don't have to check for it
 	 */
 	public void parse(String[] args) {
-		// Note: Will already throw NullPointerException if args is null, so don't have to check for it
 		if (args.length == 0) return;
 		
 		if ( isFlag(args[0]) ) { // Head case: first string is a flag

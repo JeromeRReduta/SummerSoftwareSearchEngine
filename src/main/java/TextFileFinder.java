@@ -16,7 +16,6 @@ import java.util.stream.Stream;
  * @version Summer 2021
  */
 public class TextFileFinder {
-	
 	/**
 	 * A lambda function that returns true if the path is a file that ends in a
 	 * .txt or .text extension (case-insensitive). Useful for

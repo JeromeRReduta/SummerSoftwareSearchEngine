@@ -20,6 +20,7 @@ public class SearchJsonWriter extends SimpleJsonWriter {
 	 */
 	public static void asStringMapStringMapIntCollection(Map<String, ? extends Map<String, ? extends Collection<Integer>>> elements,
 			Writer writer, int level) throws IOException {
+		
 		if (elements == null) return;
 		
 		var entries = elements.entrySet().iterator();

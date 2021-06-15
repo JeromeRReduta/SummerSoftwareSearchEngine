@@ -179,14 +179,7 @@ public class SimpleJsonWriter {
 	 * @see #asNestedArray(Map, Writer, int)
 	 */
 	public static String asNestedArray(Map<String, ? extends Collection<Integer>> elements) {
-		try {
-			StringWriter writer = new StringWriter();
-			asNestedArray(elements, writer, 0);
-			return writer.toString();
-		}
-		catch (IOException e) {
-			return null;
-		}
+		return FunctionalWriter.writeToString(elements, (elem, writer) -> asNestedArray(elem, writer, 0));
 	}
 
 	/**
@@ -236,7 +229,6 @@ public class SimpleJsonWriter {
 	 * @param <T> elements type
 	 */
 	interface FunctionalWriter<T> {
-		
 		/**
 		 * Abstract writing function. Overridden in the static functions to call whatever writing function is needed.
 		 * @param elements elements to write

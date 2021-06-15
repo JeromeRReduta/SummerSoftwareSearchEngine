@@ -46,8 +46,6 @@ public class Driver {
 		if (argMap.hasFlag("-index")) { // Print InvertedIndex data to file (in JSON format)
 			final Path INDEX = argMap.getPath( "-index", Path.of("index.json") );
 			
-			System.out.println("INDEX IS: " + INDEX);
-			
 			try {
 				invIndex.toJson(INDEX);
 			}

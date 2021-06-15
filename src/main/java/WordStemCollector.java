@@ -14,11 +14,10 @@ import opennlp.tools.stemmer.snowball.SnowballStemmer;
  *
  */
 public class WordStemCollector {
-
 	/** InvertedIndex this collector will store its data to */
 	private final InvertedIndex index;
 	
-	/** Stemmer used for stemmer words */
+	/** Stemmer used for stemming words */
 	private final static Stemmer stemmer = new SnowballStemmer(SnowballStemmer.ALGORITHM.ENGLISH);
 	
 	/**
@@ -35,10 +34,10 @@ public class WordStemCollector {
 	 * @throws IOException in case of IO Error
 	 */
 	public void collectStemsFrom(Path seed) throws IOException {
-		if (Files.isDirectory(seed)) {
+		if (Files.isDirectory(seed)) { // Case: Directory - call parseFile() for each text file in directory
 			List<Path> filePaths = TextFileFinder.list(seed);
 			
-			for (Path filePath : filePaths) {
+			for (Path filePath : filePaths) { // Case: one file - call parseFile() just for this file
 				parseFile(filePath);
 			}
 		}

@@ -20,14 +20,13 @@ public class InvertedIndex {
 	
 	/**
 	 * Constructor
+	 * @note Shouldn't make a builder here, b/c the point isn't to create
+	a new thing with many complex things, but to populate an already existing
+	thing with data
 	 */
 	public InvertedIndex() {
 		map = new TreeMap<>();
 	}
-	
-	/* NOTE: Shouldn't make a builder here, b/c the point isn't to create
-	a new thing with many complex things, but to populate an already existing
-	thing with data */
 	
 	/**
 	 * Adds a string with a given position num from a given filename
@@ -40,8 +39,6 @@ public class InvertedIndex {
 		map.get(str).putIfAbsent(location,  new TreeSet<>());
 		map.get(str).get(location).add(position);
 	}
-	
-	// Note: Map<String, ? extends Map<String, ? extends Iterable<Integer>>> is generic type for this nested map
 	
 	/**
 	 * Returns an unmodifiable view of all the strings in the index
@@ -58,8 +55,8 @@ public class InvertedIndex {
 	 * @return An unmodifiable view of all the locations containing the given string
 	 */
 	public Set<String> getLocationsContaining(String str) {
-		return contains(str) ?
-				Collections.unmodifiableSet( map.get(str).keySet() ) : Collections.emptySet();
+		return contains(str)
+				? Collections.unmodifiableSet( map.get(str).keySet() ) : Collections.emptySet();
 	}
 	
 	/**
@@ -69,8 +66,8 @@ public class InvertedIndex {
 	 * @return An unmodifiable view of all the positions where a string shows up in a given location
 	 */
 	public Set<Integer> getPositionsOfStringInLocation(String str, String location) {
-		return contains(str, location) ?
-				Collections.unmodifiableSet( map.get(str).get(location) ) : Collections.emptySet();
+		return contains(str, location)
+				? Collections.unmodifiableSet( map.get(str).get(location) ) : Collections.emptySet();
 	}
 	
 	/**
