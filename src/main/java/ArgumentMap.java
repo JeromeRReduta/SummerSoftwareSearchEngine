@@ -1,4 +1,3 @@
-import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
@@ -43,11 +42,9 @@ public class ArgumentMap {
 	 * @param args the command line arguments to parse
 	 */
 	public void parse(String[] args) {
-		/* Error checking */
-		if (args == null) throw new NullPointerException("args is null"); // TODO Remove
+		// Note: Will already throw NullPointerException if args is null, so don't have to check for it
 		if (args.length == 0) return;
 		
-		/* Parsing */
 		if ( isFlag(args[0]) ) { // Head case: first string is a flag
 			map.put(args[0], null);
 		}
@@ -179,13 +176,7 @@ public class ArgumentMap {
 		try {
 			return Path.of( map.get(flag) );
 		}
-		// TODO catch (Exception e)
-		catch (NullPointerException | InvalidPathException e) {
-			return defaultValue;
-		}
-		// TODO Remove this block
 		catch (Exception e) {
-			System.err.println("Unexpected error in argMap.getPath(): " + e);
 			return defaultValue;
 		}
 	}
@@ -205,12 +196,7 @@ public class ArgumentMap {
 		try {
 			return Integer.parseInt( map.get(flag) );
 		}
-		// TODO Combine the catch blocks
-		catch(NullPointerException | NumberFormatException e) {
-			return defaultValue;
-		}
 		catch(Exception e) {
-			System.err.println("Unexpected error in argMap.getInteger(): " + e);
 			return defaultValue;
 		}
 	}

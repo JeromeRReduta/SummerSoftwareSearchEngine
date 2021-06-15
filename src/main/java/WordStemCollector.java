@@ -1,24 +1,12 @@
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
-// TODO Combine OneFileStemCollector and WorDStemCollector into one class
-
-/*
- * TODO
- * 
- * Don't really need the inner class in this case
- * 
- * private final InvertedIndex index;
- * 
- * one method that knows how to start everything off
- * 	takes in a path, decides whether it needs to list that path or call the other method
- * 
- * one method that handles building from a single file at a time
- * 
- * both methods should throw those exceptions 
- */
+import opennlp.tools.stemmer.Stemmer;
+import opennlp.tools.stemmer.snowball.SnowballStemmer;
 
 /**
  * Class whose sole responsibility is to parse text files for word stems and store them in an inverted index
@@ -30,102 +18,52 @@ public class WordStemCollector {
 	/** InvertedIndex this collector will store its data to */
 	private final InvertedIndex index;
 	
-	/** list of file paths this collector will read from */
-	private final List<Path> filePaths; // TODO Local when needed
+	/** Stemmer used for stemmer words */
+	private final static Stemmer stemmer = new SnowballStemmer(SnowballStemmer.ALGORITHM.ENGLISH);
 	
 	/**
-	 * Constructor - use builder instead
-	 * @param builder This class's builder pattern
+	 * Constructor
+	 * @param index InvertedIndex this collector will save its stems to
 	 */
-	private WordStemCollector(WordStemCollector.Builder builder) {
-		index = builder.index;
-		filePaths = builder.filePaths;
+	public WordStemCollector(InvertedIndex index) {
+		this.index = index;
 	}
 	
 	/**
-	 * Builder pattern for WordStemCollector
-	 * @author JRRed
-	 *
+	 * Collects stems from a file or directory path and stores them in its invertedIndex
+	 * @param seed file or directory path
+	 * @throws IOException in case of IO Error
 	 */
-	public static class Builder {
-		
-		/** InvertedIndex the collector will store its data to */
-		private InvertedIndex index;
-		
-		/** list of file paths this collector will read from */
-		private List<Path> filePaths;
-		
-		/**
-		 * Constructor. Please use the builder methods to set data for WordStemCollector.
-		 */
-		public Builder() {
-		}
-		
-		/**
-		 * If inputPath is a directory, sets filePaths to all files under that directory. If inputPath is a file, sets filePaths to
-		 * just that file. Else, sets filePaths to null.
-		 * @param inputPath a path that may be a file or directory
-		 * @return the builder
-		 */
-		public Builder readingAllFilesFrom(Path inputPath) {
-			try {
-				if (Files.isDirectory(inputPath)) {
-					filePaths = TextFileFinder.list(inputPath);
-				}
-				else if (Files.isRegularFile(inputPath,  java.nio.file.LinkOption.NOFOLLOW_LINKS)) {
-					filePaths = List.of(inputPath);
-				}
-				else {
-					filePaths = null;
-				}
-			}
-			catch (IOException e) {
-				System.err.println("IOException - WordStemCollector.Builder()");
-				filePaths = null;
-			}
-			catch(Exception e) {
-				System.err.println("Unknown exception - WordStemCollector.Builder() " + e);
-				filePaths = null;
-			}
+	public void collectStemsFrom(Path seed) throws IOException {
+		if (Files.isDirectory(seed)) {
+			List<Path> filePaths = TextFileFinder.list(seed);
 			
-			return this;
+			for (Path filePath : filePaths) {
+				parseFile(filePath);
+			}
 		}
-		
-		/**
-		 * Sets the builder's invertedIndex
-		 * @param index InvertedIndex that the WordStemCollector will save its stems to
-		 * @return the builder
-		 */
-		public Builder savingStemsTo(InvertedIndex index) {
-			this.index = index;
-			return this;
-		}
-		
-		/**
-		 * Creates a WordStemCollector using this builder
-		 * @return A WordStemCollector using this builder
-		 */
-		public WordStemCollector build() {
-			return new WordStemCollector(this);
+		else if (Files.isRegularFile(seed, java.nio.file.LinkOption.NOFOLLOW_LINKS)) {
+			parseFile(seed);
 		}
 	}
-	
+
 	/**
-	 * Collects stems from all files the collector has received, and saves it to its InvertedIndex
+	 * Parses a file, collecting its stems and storing them to an inverted index
+	 * @param filePath path of one file
+	 * @throws IOException In case of IO e
 	 */
-	public void collectStems() {
-		for (Path filePath : filePaths) {
-			try {
-				OneFileStemCollector oneFileCollector = new OneFileStemCollector.Builder()
-						.readingFrom(filePath).savingStemsTo(index).build();
+	private void parseFile(Path filePath) throws IOException {
+		int position = 1;
+		String location = filePath.toString();
+		
+		try ( BufferedReader reader = Files.newBufferedReader(filePath, StandardCharsets.UTF_8) ) {
+			String line;
+			while ( (line = reader.readLine()) != null ) {
+				String[] parsedLine = TextParser.parse(line);
 				
-				oneFileCollector.parseFile();
-			}
-			catch(IOException e) {
-				System.err.println("IOException - WordStemCollector");
-			}
-			catch(Exception e)  {
-				System.err.println("Unknown exception - WordStemCollector " + e);
+				for (String word : parsedLine) {
+					index.add( stemmer.stem(word).toString(), location, position++ );
+				}
 			}
 		}
 	}

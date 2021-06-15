@@ -1,5 +1,6 @@
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Collections;
-import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -29,134 +30,104 @@ public class InvertedIndex {
 	thing with data */
 	
 	/**
-	 * Adds a stem with a given position num from a given filename
-	 * @param stem stem
-	 * @param pathName file name
-	 * @param position the stem's "position" in the text file (1st stem = pos. 1, nth stem = pos. n)
+	 * Adds a string with a given position num from a given filename
+	 * @param str string
+	 * @param location name of place where str was found
+	 * @param position the string's "position" in the text file (1st string = pos. 1, nth string = pos. n)
 	 */
-	public void add(String stem, String pathName, int position) {
-		map.putIfAbsent(stem,  new TreeMap<>());
-		map.get(stem).putIfAbsent(pathName,  new TreeSet<>());
-		map.get(stem).get(pathName).add(position);
+	public void add(String str, String location, int position) {
+		map.putIfAbsent(str,  new TreeMap<>());
+		map.get(str).putIfAbsent(location,  new TreeSet<>());
+		map.get(str).get(location).add(position);
 	}
 	
-	/*
-	 * TODO
-	 * 
-	 * get() --> return an unmodifiable keyset (all the words)
-	 * 
-	 * get(String word) --> return the inner map keyset (all the locations for a word)
-	 * 
-	 * get(String word, String location) --> return the unmodifiable inner treeset
-	 */
+	// Note: Map<String, ? extends Map<String, ? extends Iterable<Integer>>> is generic type for this nested map
 	
-	// TODO Remove, breaks encapsulation
 	/**
-	 * Returns an unmodifiable view of the index data
-	 * @return An unmodifiable view of the index's data
+	 * Returns an unmodifiable view of all the strings in the index
+	 * @return An unmodifiable view of all the strings in the index
+	 * @note Shouldn't use Collections.unmodifiableMap(), b/c unmodifiableX() only makes outermost layer of X unmodifiable - inner structures are still mutable
 	 */
-	public Map<String, TreeMap<String, TreeSet<Integer>>> get() {
-		return Collections.unmodifiableMap(map);
-	}
-	
-	// TODO Remove, replace with a safer version
-	/**
-	 * Returns an unmodifiable view of the inner map containing every file that has the given word stem
-	 * 
-	 * @param stem word stem
-	 * @return An unmodifiable view of the inner map containing every file that has the given word stem
-	 */
-	public Map<String, TreeSet<Integer>> get(String stem) {
-		return map.get(stem) != null ?
-				Collections.unmodifiableMap( map.get(stem) ) : Collections.emptyMap();
-	}
-	
-	// TODO Maybe reuse your contains(stem, pathName) to reuse some of that code
-	/**
-	 * Returns an unmodifiable view of the set of position nums a given file has for a given word stem
-	 * @param stem word stem
-	 * @param pathName file name
-	 * @return An unmodfiiable view of the set of position nums a given file has for a given word stem
-	 */
-	public Set<Integer> get(String stem, String pathName) {
-		return map.get(stem) != null && map.get(stem).get(pathName) != null ?
-				Collections.unmodifiableSet( map.get(stem).get(pathName) ) : Collections.emptySet();
+	public Set<String> getStrings() {
+		return Collections.unmodifiableSet( map.keySet() );
 	}
 	
 	/**
-	 * Returns whether the index contains a given word stem
-	 * @param stem word stem
-	 * @return Whether the index contains a given word stem
+	 * Returns an unmodifiable view of all the locations that contain the given string
+	 * @param str string
+	 * @return An unmodifiable view of all the locations containing the given string
 	 */
-	public boolean contains(String stem) {
-		return map.containsKey(stem);
+	public Set<String> getLocationsContaining(String str) {
+		return contains(str) ?
+				Collections.unmodifiableSet( map.get(str).keySet() ) : Collections.emptySet();
 	}
 	
 	/**
-	 * Returns whether the index contains a given word stem and a given file that holds that word stem
-	 * @param stem word stem
-	 * @param pathName file name
-	 * @return Whether the index contains a given word stem and a given file that holds that word stem
+	 * Returns an unmodifiable view of all the positions where a string shows up in a given location
+	 * @param str string
+	 * @param location location
+	 * @return An unmodifiable view of all the positions where a string shows up in a given location
 	 */
-	public boolean contains(String stem, String pathName) {
-		return contains(stem) && map.get(stem) != null && map.get(stem).containsKey(pathName);
+	public Set<Integer> getPositionsOfStringInLocation(String str, String location) {
+		return contains(str, location) ?
+				Collections.unmodifiableSet( map.get(str).get(location) ) : Collections.emptySet();
 	}
 	
 	/**
-	 * Returns whether the index contains a given position num, in a given file, that holds a given word stem
-	 * @param stem word stem
-	 * @param pathName file name
-	 * @param position position num of the given stem
-	 * @return Whether the index contains a given positoin num, in a given file, that holds a given word stem
+	 * Returns whether the index contains a given string
+	 * @param str string
+	 * @return Whether the index contains a given string
 	 */
-	public boolean contains(String stem, String pathName, int position) {
-		return contains(stem, pathName) && map.get(stem).get(pathName) != null &&
-				map.get(stem).get(pathName).contains(position);
+	public boolean contains(String str) {
+		return map.get(str) != null;
 	}
 	
-	/*
-	 * TODO Either give each method a different meaningful name or keep it the 
-	 * same with the different params
-	 * 
-	 * size()
-	 * size(String stem(
-	 * size(String stem, String pathName)
-	 * 
-	 * -or-
-	 * 
-	 * numWords()
-	 * numLocations(String word)
-	 * numPositions(String word, String location)
-	 * 
-	 * Careful about "stem" vs word
-	 * and "pathName" vs location
+	/**
+	 * Returns whether the index contains a given string and a given file that holds it
+	 * @param str string
+	 * @param location name of place where str was found
+	 * @return Whether the index contains a given string and a given file that holds that string
 	 */
+	public boolean contains(String str, String location) {
+		return contains(str) && map.get(str).get(location) != null;
+	}
 	
 	/**
-	 * Returns the number of stems in the index
-	 * @return The number of stems in the index
+	 * Returns whether the index contains a given position num, in a given file, that holds a given string
+	 * @param str string
+	 * @param location name of place where str was found
+	 * @param position position num of the given string
+	 * @return Whether the index contains a given position num, in a given file, that holds a given string
 	 */
-	public int size() {
+	public boolean contains(String str, String location, int position) {
+		return contains(str, location) && map.get(str).get(location).contains(position);
+	}
+	
+	/**
+	 * Returns the number of strings in the index
+	 * @return The number of strings in the index
+	 */
+	public int numOfStrings() {
 		return map.size();
 	}
 	
 	/**
-	 * Returns the number of file that have a given word stem
-	 * @param stem word stem
-	 * @return The number of files that have a given word stem
+	 * Returns the number of locations containing a given string
+	 * @param str string
+	 * @return The number of locations containing a given string. If there's no mapping, returns 0.
 	 */
-	public int innerMapSize(String stem) {
-		return contains(stem) ? map.get(stem).size() : 0;
+	public int numOfLocationsContainingStrings(String str) {
+		return contains(str) ? map.get(str).size() : 0;
 	}
 	
 	/**
-	 * Returns the number of times a given stem occurs in a given file that has that stem
-	 * @param stem word stem
-	 * @param pathName file name
-	 * @return The number of times a given stem occurs in a given file that has that stem
+	 * Returns the number of times a given string appears in a given location
+	 * @param str string
+	 * @param location location
+	 * @return The number of times a given string appears in a given location. If there's no mapping, returns 0.
 	 */
-	public int locationListSize(String stem, String pathName) {
-		return contains(stem, pathName) ? map.get(stem).get(pathName).size() : 0;
+	public int numOfTimesStringAppearsInLocation(String str, String location) {
+		return contains(str, location) ? map.get(str).get(location).size() : 0;
 	}
 	
 	@Override
@@ -164,9 +135,20 @@ public class InvertedIndex {
 		return map.toString();
 	}
 	
-	/* TODO Try this instead
-	public void toJson(Path path) throw IOException {
-		SearchJsonWriter.asInvertedIndex(this.map, path);
+	/**
+	 * Creates a JSON version of this index, output to a string
+	 * @return A JSON version of this index, output to a string
+	 */
+	public String toJson() {
+		return SearchJsonWriter.asStringMapStringMapIntCollection(map);
 	}
-	*/
+	
+	/**
+	 * Creates a JSON version of this index, output to a path
+	 * @param path path
+	 * @throws IOException In case IOError occurs
+	 */
+	public void toJson(Path path) throws IOException {
+		SearchJsonWriter.asStringMapStringMapIntCollection(map, path);
+	}
 }

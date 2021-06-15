@@ -1,6 +1,8 @@
 import java.io.IOException;
 import java.io.Writer;
 import java.nio.file.Path;
+import java.util.Collection;
+import java.util.Map;
 
 /**
  * Extension of SimpleJsonWriter; this one is focused on Search Engine data structures
@@ -8,19 +10,19 @@ import java.nio.file.Path;
  *
  */
 public class SearchJsonWriter extends SimpleJsonWriter {
-	
 	/**
-	 * Writes the elements as an InvertedIndex, in JSON format
-	 * @param index InvertedIndex
-	 * @param writer writer
-	 * @param level indent level
-	 * @throws IOException in case of IOError
+	 * Writes the elements as a pretty JSON object with the following format: <br>
+	 * <pre>Map&lt;String, ? extends Map &lt;String, ? extends Collection &lt;Integer&gt;&gt;&gt;</pre><br>
+	 * @param elements elements to write
+	 * @param writer writer to use
+	 * @param level initial indent level
+	 * @throws IOException if an IO Error occurs
 	 */
-	// TODO public static void asInvertedIndex(TreeMap<String, TreeMap<String, TreeSet<Integer>>> index, Writer writer, int level) throws IOException {
-	public static void asInvertedIndex(InvertedIndex index, Writer writer, int level) throws IOException {
-		if (index == null) return;
+	public static void asStringMapStringMapIntCollection(Map<String, ? extends Map<String, ? extends Collection<Integer>>> elements,
+			Writer writer, int level) throws IOException {
+		if (elements == null) return;
 		
-		var entries = index.get().entrySet().iterator();
+		var entries = elements.entrySet().iterator();
 		
 		writer.write("{"); // Start of list and head value
 		if (entries.hasNext()) {
@@ -42,22 +44,22 @@ public class SearchJsonWriter extends SimpleJsonWriter {
 	}
 	
 	/**
-	 * {@link #asInvertedIndex(InvertedIndex, Writer, int)} for outputting to file
-	 * @param index InvertedIndex
-	 * @param path file name
-	 * @throws IOException in case of IOError
+	 * {@link #asStringMapStringMapIntCollection(Map, Writer, int)} for outputting to a file
+	 * @param elements elements to write
+	 * @param path path to output to
+	 * @throws IOException if an IO error occurs
 	 */
-	public static void asInvertedIndex(InvertedIndex index, Path path) throws IOException {
-		FunctionalWriter.writeToFile(index, path, (elem, writer) -> asInvertedIndex(elem, writer, 0));
+	public static void asStringMapStringMapIntCollection(Map<String, ? extends Map<String, ? extends Collection<Integer>>> elements,
+			Path path) throws IOException {
+		FunctionalWriter.writeToFile(elements, path, (elem, writer) -> asStringMapStringMapIntCollection(elem, writer, 0));
 	}
 	
 	/**
-	 * {@link #asInvertedIndex(InvertedIndex, Writer, int)} for outputting as String
-	 * @param index InvertedIndex
-	 * @return InvertedIndex, as a String in JSON format
+	 * {@link #asStringMapStringMapIntCollection(Map, Writer, int)} for outputting as String
+	 * @param elements elements to write
+	 * @return MapMapCollection, as a String in JSON format
 	 */
-	public static String asInvertedIndex(InvertedIndex index) {
-		return FunctionalWriter.writeToString(index, (elem, writer) -> asInvertedIndex(elem, writer, 0));
+	public static String asStringMapStringMapIntCollection(Map<String, ? extends Map<String, ? extends Collection<Integer>>> elements) {
+		return FunctionalWriter.writeToString(elements, (elem, writer) -> asStringMapStringMapIntCollection(elem, writer, 0));
 	}
-
 }

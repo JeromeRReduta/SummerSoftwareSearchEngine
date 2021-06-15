@@ -41,3 +41,105 @@ WordStemCollector:
 		public build():
 			return new WordStemCollector(this);
 		
+		
+New way for SimpleJsonWriter and SearchJsonWriter
+
+	Instead of this:
+		value = iterator.next()
+	
+		Head case:
+			Do thing
+			
+		Everything else:
+			Do same thing but print a comma at the start
+			
+	Can try this:
+		While iterator.hasNext():
+			value = iterator.next()
+		
+			do thing
+			if iterator.hasNext(): // if this value isn't the tail:
+				print comma at end
+				
+			then print newline or smth	
+
+
+
+
+Note: Do this for multi-level sorting:
+From Prof. Sophie's lecture:
+
+// sort by length and then case-insensitive sort by text
+		Collections.shuffle(words);
+
+		words.sort(new Comparator<String>() {
+			@Override
+			public int compare(String one, String two) {
+				int same = Integer.compare(one.length(), two.length());
+				return same != 0 ? same : String.CASE_INSENSITIVE_ORDER.compare(one, two);
+			}
+		});
+
+		printList("Combined", words);
+
+		// converted to lambda function
+		Collections.shuffle(words);
+
+		words.sort((one, two) -> {
+			int same = Integer.compare(one.length(), two.length());
+			return same != 0 ? same : String.CASE_INSENSITIVE_ORDER.compare(one, two);
+		});
+
+		printList("Combined", words);
+
+		// alternate form of conversion
+		Collections.shuffle(words);
+		words.sort(Comparator.comparingInt(String::length).thenComparing(String.CASE_INSENSITIVE_ORDER));
+		printList("Combined", words);
+	}
+}
+
+
+
+Streams and runtime:
+	Remember: if you're solving the same problem, a stream approach is usually slower than an imperative approach, UNLESS you do stream.parallel()
+		(you also need a stream that CAN do parallel() - no side effects and stateless)
+
+	Unless you do stream.parallel(), just do imperative approach instead
+
+InvertedIndexSearcher:
+	Now that you can access unmodifiable map:
+
+	Searcher:
+		Map<...> readOnlyMap = ...
+		BiFunction<> searchFunc
+
+
+		exactSearch(...):
+		partialSearch(...):
+
+		public Searcher(Builder):
+			...
+
+		public search():
+			Collection<SearchResult> results = ...
+			
+			OneFileSearcher oneFileSearcher new OneFileSearcher.Builder().readingFrom(readOnlyMap)
+				.usingSearchFunc(searchFunc)
+				.savingResultsTo(results)
+
+			oneFileSearcher.search()			
+			
+
+		static class Builder:
+			Map<...> readOnlyMap;
+			BiFunction<> searchFunc;
+
+			readingFromIndex(InvertedIndex index):
+				readOnlyMap = index.get();
+
+			usingExactSearch(boolean useExactSearch):
+				searchFunc = useExactSearch ? Searcher::exactSearch : Searcher::partialSearch
+				
+
+				

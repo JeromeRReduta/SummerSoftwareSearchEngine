@@ -29,31 +29,33 @@ public class Driver {
 		InvertedIndex invIndex = new InvertedIndex();
 		
 		if (argMap.hasFlag("-text")) { // Collect stems from file(s): argMap.getPath("-text") and store in invertedIndex
+			final Path TEXT = argMap.getPath("-text");
+			
 			try {
-				WordStemCollector collector = new WordStemCollector.Builder()
-						.readingAllFilesFrom( argMap.getPath("-text") ).savingStemsTo(invIndex).build();
-				
-				collector.collectStems();
+				// Note: If I multithread without making a var name here, will it still work?
+				new WordStemCollector(invIndex).collectStemsFrom(TEXT);
 			}
 			catch (NullPointerException e) {
-				// TODO Missing required path value for the -text flag.
-				System.err.println("IOException or NullPointerException: " + e);
+				System.err.printf("Error: path is missing or invalid: %s%n", TEXT);
 			}
 			catch (Exception e) {
-				// TODO Unable to build the inverted index from path: + argMap.getString(-text)
-				System.err.println("Unexpected error while collecting stems: " + e);
+				System.err.printf("Error: Could not build inverted index from path: %s%n", TEXT);
 			}
 		}
 		
 		if (argMap.hasFlag("-index")) { // Print InvertedIndex data to file (in JSON format)
+			final Path INDEX = argMap.getPath( "-index", Path.of("index.json") );
+			
+			System.out.println("INDEX IS: " + INDEX);
+			
 			try {
-				SearchJsonWriter.asInvertedIndex(invIndex, argMap.getPath("-index", Path.of("index.json")) );
+				invIndex.toJson(INDEX);
 			}
 			catch (IOException e) {
-				System.err.println("IOException: " + e);
+				System.err.printf("Error: Error occurred while dealing with path: %s%n", INDEX);
 			}
 			catch(Exception e) {
-				System.err.println("Unexpected error while writing JSON to file: " + e);
+				System.err.printf("Error: Could not output inverted index data to file: %s%n", INDEX);
 			}
 		}
 
