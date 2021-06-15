@@ -2,6 +2,10 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 /**
  * Class responsible for running this project based on the provided command-line
@@ -56,6 +60,18 @@ public class Driver {
 				System.err.printf("Error: Could not output inverted index data to file: %s%n", INDEX);
 			}
 		}
+		
+		String line = "bubba";
+		
+		
+		// Exact:
+		Collection<String> bubba = TextFileStemmer.uniqueStems(line).stream()
+			.filter( invIndex.getStrings()::contains )
+			.collect( Collectors.toCollection(TreeSet::new) );
+		
+		TextFileStemmer.uniqueStems(line).stream().flatMap( stem -> turnStemIntoTreeSetOfPartialStems.stream() ).collect( Collectors.toCollection(TreeSet::new) );
+				partialStem
+				).forEach();
 
 		// calculate time elapsed and output
 		Duration elapsed = Duration.between(start, Instant.now());
