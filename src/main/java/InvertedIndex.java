@@ -256,7 +256,7 @@ public class InvertedIndex {
 			}
 		}
 		
-		System.out.println("QUERIES:\n" + queries);
+		//System.out.println("QUERIES:\n" + queries);
 		for (String path : pathsContainingAQuery) {
 			results.add( new SearchResult(path, queries) );
 		}
@@ -288,7 +288,7 @@ public class InvertedIndex {
 			System.out.println("SEARCH RESULT - QUERYSET:\n" + querySet);
 			for (String query : querySet) {
 				
-				System.out.println("Number of times " + query + " appears in " + location + ": " + numOfTimesStringAppearsInLocation(query, location));
+				//System.out.println("Number of times " + query + " appears in " + location + ": " + numOfTimesStringAppearsInLocation(query, location));
 				tempCount += numOfTimesStringAppearsInLocation(query, location);
 			}
 			this.count = tempCount;
