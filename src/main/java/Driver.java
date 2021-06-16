@@ -1,13 +1,7 @@
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.TreeSet;
 
 /**
  * Class responsible for running this project based on the provided command-line
@@ -34,6 +28,7 @@ public class Driver {
 		// Creating objects
 		ArgumentMap argMap = new ArgumentMap(args);
 		InvertedIndex invIndex = new InvertedIndex();
+		IndexSearcher searcher = new IndexSearcher(invIndex);
 		
 		if (argMap.hasFlag("-text")) { // Collect stems from file(s): argMap.getPath("-text") and store in invertedIndex
 			final Path TEXT = argMap.getPath("-text");
@@ -54,31 +49,22 @@ public class Driver {
 			final Path QUERY = argMap.getPath("-query");
 			
 			try {
-				BufferedReader reader = Files.newBufferedReader(QUERY, StandardCharsets.UTF_8);
-				Set<TreeSet<String>> uniqueQueries = new HashSet<>();
-				String line;
 				
-				while ( (line = reader.readLine()) != null) {
-					TreeSet<String> queries = TextFileStemmer.uniqueStems(line);
-					
-					if ( !queries.isEmpty() ) {
-						uniqueQueries.add(queries);
-					}
-					
-				}
 				
-				for (TreeSet<String> query : uniqueQueries) {
-					System.out.println(query);
-					// Add <queryString(query), index.search(query)> to resultsMap
+				searcher.search(QUERY,  true);
+					/*
+					Collection<String> exactStemsFromLine = TextFileStemmer.uniqueStems(line);
 					
-					// Note: Is this efficient at all?
-					// Above approach is horrendously memory inefficient - if you have a million unique query strings, have to create a TreeSet with a million values before processing
-					// Instead, just do approach similar to fall project
-				}
+					Collection<String> partialStemsFromLine = TextFileStemmer.uniqueStems(line).stream()
+							.flatMap( invIndex::getStemsStartingWith )
+							.collect( Collectors.toCollection(TreeSet::new) );
+					*/
+				
 				
 			}
 			catch (NullPointerException e) {
 				System.err.printf("Error: query path is missing or invalid: %s%n", QUERY);
+				e.printStackTrace();
 			}
 			catch (Exception e) {
 				System.out.println(e);
@@ -111,6 +97,20 @@ public class Driver {
 			}
 			catch(Exception e) {
 				System.err.printf("Error: Could not output string count data to file: %s%n", COUNTS);
+			}
+		}
+		
+		if (argMap.hasFlag("-results")) {
+			final Path RESULTS = argMap.getPath( "-results", Path.of("results.json") );
+			
+			try {
+				searcher.outputToFile(RESULTS);
+			}
+			catch(IOException e) {
+				System.err.printf("Error: Error occurred while dealign with path: %s%n", RESULTS);
+			}
+			catch (Exception e) {
+				System.err.printf("Error: Could not output search result data to file: %s%n", RESULTS);
 			}
 		}
 
