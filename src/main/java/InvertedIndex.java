@@ -321,7 +321,7 @@ public class InvertedIndex {
 
 		@Override
 		public int compareTo(InvertedIndex.SearchResult other) {
-			int sameScore = Double.compare(this.score, other.score);
+			int sameScore = Double.compare(other.score, this.score);
 			if (sameScore != 0) return sameScore;
 			
 			int sameCount = Integer.compare(other.count,  this.count);
