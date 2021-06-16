@@ -29,9 +29,13 @@ public class Driver {
 		InvertedIndex invIndex = new InvertedIndex();
 		
 		if (argMap.hasFlag("-text")) { // Collect stems from file(s): argMap.getPath("-text") and store in invertedIndex
-			final Path TEXT = argMap.getPath("-text");
+			final Path TEXT = argMap.getPath("-text"); // TODO Fix variable name
 			
 			try {
+				/*
+				 * TODO Either use static methods (where you don't need to create a 
+				 * variable here) -or- create a variable and initialize near your inverted index.
+				 */
 				// Note: If I multithread without making a var name here, will it still work?
 				new WordStemCollector(invIndex).collectStemsFrom(TEXT);
 			}
@@ -44,7 +48,7 @@ public class Driver {
 		}
 		
 		if (argMap.hasFlag("-index")) { // Print InvertedIndex data to file (in JSON format)
-			final Path INDEX = argMap.getPath( "-index", Path.of("index.json") );
+			final Path INDEX = argMap.getPath( "-index", Path.of("index.json") );  // TODO Fix variable name
 			
 			try {
 				invIndex.toJson(INDEX);
