@@ -1,15 +1,12 @@
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Class whose sole responsibility is to store data in an InvertedIndex format
@@ -90,28 +87,34 @@ public class InvertedIndex {
 		return Collections.unmodifiableMap(stringCount);
 	}
 	
-	public Stream<String> getStemsMatching(String stem) {
-		Stream.of(stem).filter(w -> !map.keySet().contains(w));
-		new ArrayList<>().removeIf(w -> !map.keySet().contains(w));
-		return map.containsKey(stem) ? Stream.of(stem) : Stream.empty();
+
+	public Set<String> getPartialStemsFrom(Set<String> stemSet) {
+		Set<String> partialStems = new HashSet<>();
+		
+		for (String stem : stemSet) {
+			var it = map.tailMap(stem).keySet().iterator();
+			
+			String current;
+			while ( it.hasNext() && (current = it.next()).startsWith(stem) ) {
+				partialStems.add(current);
+			}
+		}
+		
+		return partialStems;
 	}
 	
-	public Stream<String> getStemsStartingWith(String stem) {
+	public Set<String> getStemsStartingWith(String stem) {
+		if ( stem == null || stem.isEmpty() ) return null;
 		
-		//return map.keySet().stream().filter( str -> str.startsWith(stem) );
-		
-		List<String> partialStems = new ArrayList<>();
-		partialStems.add(stem);
-		
-		var it = map.tailMap(stem, false).keySet().iterator();
+		Set<String> partialStems = new HashSet<>();
+		var it = map.tailMap(stem).keySet().iterator();
 		
 		String current;
-		
 		while ( it.hasNext() && (current = it.next()).startsWith(stem) ) {
 			partialStems.add(current);
 		}
 		
-		return partialStems.stream();
+		return partialStems;
 	}
 	
 	
@@ -234,46 +237,16 @@ public class InvertedIndex {
 	
 	
 	public Collection<SearchResult> exactSearch(Set<String> queries) {
-		
-		/*
-		var results = new ArrayList<SearchResult>();
-		var lookup = new HashMap<String, SearchResult>();
-		
-		for (String query : queries) { // for each stem in query set
-			if (map.containsKey(query)) {
-				// updateResults(map.get(query).keySet(), results, lookup, query);
-				
-				Set<String> pathNames = map.get(query).keySet();
-				for (String pathName : pathNames) {
-					
-					if (!lookup.containsKey(pathName)) {
-						SearchResult result = new SearchResult(pathName);
-						result.count++;
-						lookup.put(pathName,  result);
-						results.add(result);
-					}
-					
-					.numOfTimesStringAppearsInLocation(stem, pathName)
-					
-					//lookup.get(pathName).updateMatches(query) // Increases matches & score numbers
-				}
-			}
-		}
-		
-		Collections.sort(results);
-		return results;
-		
-		*/
-		
 		/* Functional approach */
+		/*
 		return queries.stream()
 				.flatMap( query ->contains(query) ? map.get(query).keySet().stream() : Stream.empty() )
 				.distinct()
 				.map( pathName -> new SearchResult(pathName, queries) )
 				.collect( Collectors.toCollection( TreeSet::new ) );
+		*/
 		/* Imperative approach */
 		
-		/*
 		HashSet<String> pathsContainingAQuery = new HashSet<>();
 		TreeSet<SearchResult> results = new TreeSet<>();
 		
@@ -282,19 +255,21 @@ public class InvertedIndex {
 				pathsContainingAQuery.addAll( map.get(query).keySet() );
 			}
 		}
+		
+		System.out.println("QUERIES:\n" + queries);
 		for (String path : pathsContainingAQuery) {
 			results.add( new SearchResult(path, queries) );
 		}
 		
 		return results;
-		*/
+		
 	}
 	
 
 	/**
 	 * Class whose sole responsibility is to hold data gained from searching the index
 	 * @author JRRed
-	 * @note All vars here are public and final (except the Formatter, which devs probably won't care about). This is because 
+	 * @note All vars here are public and final. This is because 
 	 * the sole purpose of this class is to hold data that other blocks of code will want to see, and once these vars are set
 	 * we will never have to change them again (if we want a new result, we'll just search again, getting a new SearchResult)
 	 *
@@ -305,12 +280,15 @@ public class InvertedIndex {
 		public final int count;
 		public final double score;
 		
-		
 		public SearchResult(String location, Set<String> querySet) {
 			this.location = location;
 			
 			int tempCount = 0;
+			
+			System.out.println("SEARCH RESULT - QUERYSET:\n" + querySet);
 			for (String query : querySet) {
+				
+				System.out.println("Number of times " + query + " appears in " + location + ": " + numOfTimesStringAppearsInLocation(query, location));
 				tempCount += numOfTimesStringAppearsInLocation(query, location);
 			}
 			this.count = tempCount;
@@ -332,12 +310,10 @@ public class InvertedIndex {
 		
 		@Override
 		public String toString() {
-			
 			return "'Where': " + location + "\n" +
 					"'Count': " + count + "\n" +
 					"'Score': " + String.format("%.8f", score) + "\n";
 		}
-
 		
 	}
 }

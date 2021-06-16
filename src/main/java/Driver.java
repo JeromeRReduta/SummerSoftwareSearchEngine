@@ -28,7 +28,7 @@ public class Driver {
 		// Creating objects
 		ArgumentMap argMap = new ArgumentMap(args);
 		InvertedIndex invIndex = new InvertedIndex();
-		IndexSearcher searcher = new IndexSearcher(invIndex);
+		IndexSearcher searcher = new IndexSearcher( invIndex, argMap.hasFlag("-exact") );
 		
 		if (argMap.hasFlag("-text")) { // Collect stems from file(s): argMap.getPath("-text") and store in invertedIndex
 			final Path TEXT = argMap.getPath("-text");
@@ -51,7 +51,7 @@ public class Driver {
 			try {
 				
 				
-				searcher.search(QUERY,  true);
+				searcher.search( QUERY,  argMap.hasFlag("-exact") );
 					/*
 					Collection<String> exactStemsFromLine = TextFileStemmer.uniqueStems(line);
 					
