@@ -1,8 +1,10 @@
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -88,8 +90,8 @@ public class InvertedIndex {
 	}
 	
 
-	public Set<String> getPartialStemsFrom(Set<String> stemSet) {
-		Set<String> partialStems = new HashSet<>();
+	public Collection<String> getPartialStemsFrom(Collection<String> stemSet) {
+		List<String> partialStems = new ArrayList<>();
 		
 		for (String stem : stemSet) {
 			var it = map.tailMap(stem).keySet().iterator();
@@ -236,7 +238,7 @@ public class InvertedIndex {
 	
 	
 	
-	public Collection<SearchResult> exactSearch(Set<String> queries) {
+	public Collection<SearchResult> exactSearch(Collection<String> queries) {
 		/* Functional approach */
 		/*
 		return queries.stream()
@@ -256,7 +258,6 @@ public class InvertedIndex {
 			}
 		}
 		
-		//System.out.println("QUERIES:\n" + queries);
 		for (String path : pathsContainingAQuery) {
 			results.add( new SearchResult(path, queries) );
 		}
@@ -280,15 +281,13 @@ public class InvertedIndex {
 		public final int count;
 		public final double score;
 		
-		public SearchResult(String location, Set<String> querySet) {
+		public SearchResult(String location, Collection<String> querySet) {
 			this.location = location;
 			
 			int tempCount = 0;
 			
-			System.out.println("SEARCH RESULT - QUERYSET:\n" + querySet);
 			for (String query : querySet) {
 				
-				//System.out.println("Number of times " + query + " appears in " + location + ": " + numOfTimesStringAppearsInLocation(query, location));
 				tempCount += numOfTimesStringAppearsInLocation(query, location);
 			}
 			this.count = tempCount;
