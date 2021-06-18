@@ -17,6 +17,7 @@ public class WordStemCollector {
 	/** InvertedIndex this collector will store its data to */
 	private final InvertedIndex index;
 	
+	// TODO Stemmer objects are NOT thread-safe, so when it comes to project 3 you will want 1 stemmer per file
 	/** Stemmer used for stemming words */
 	private final static Stemmer stemmer = new SnowballStemmer(SnowballStemmer.ALGORITHM.ENGLISH);
 	
@@ -45,7 +46,14 @@ public class WordStemCollector {
 			parseFile(seed);
 		}
 	}
+	
+	/* TODO 
+	private void parseFile(Path filePath) throws IOException {
+		parseFile(filePath, this.index);
+	}
+	*/
 
+	// TODO public static void parseFile(Path filePath, InvertedIndex index) throws IOException {
 	/**
 	 * Parses a file, collecting its stems and storing them to an inverted index
 	 * @param filePath path of one file
