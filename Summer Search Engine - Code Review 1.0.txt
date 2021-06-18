@@ -46,3 +46,11 @@ WordStemCollector:
 	public static WordStemCollector savingStemsTo(InvertedIndex index):
 		return new WordStemCollector(index);
 
+	public void collectStemsFrom(Path path):
+		Create list from this path (regardless of whether it's one file or dir)
+			Chances are, will probably be dir
+
+		For each filePath : filePaths:
+			make anonclass OneFileCollector (basically does what OneFileCollector does)
+			oneFileCollector.parseFile();
+

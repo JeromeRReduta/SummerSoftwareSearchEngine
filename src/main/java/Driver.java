@@ -29,19 +29,19 @@ public class Driver {
 		ArgumentMap argMap = new ArgumentMap(args);
 		InvertedIndex invIndex = new InvertedIndex();
 		IndexSearcher searcher = new IndexSearcher( invIndex, argMap.hasFlag("-exact") );
+		WordStemCollector stemCollector = new WordStemCollector(invIndex);
 		
 		if (argMap.hasFlag("-text")) { // Collect stems from file(s): argMap.getPath("-text") and store in invertedIndex
-			final Path TEXT = argMap.getPath("-text");
+			final Path text = argMap.getPath("-text");
 			
 			try {
-				// Note: If I multithread without making a var name here, will it still work?
-				new WordStemCollector(invIndex).collectStemsFrom(TEXT);
+				stemCollector.collectStemsFrom(text);
 			}
 			catch (NullPointerException e) {
-				System.err.printf("Error: path is missing or invalid: %s%n", TEXT);
+				System.err.printf("Error: path is missing or invalid: %s%n", text);
 			}
 			catch (Exception e) {
-				System.err.printf("Error: Could not build inverted index from path: %s%n", TEXT);
+				System.err.printf("Error: Could not build inverted index from path: %s%n", text);
 			}
 		}
 		
@@ -73,16 +73,16 @@ public class Driver {
 		}
 		
 		if (argMap.hasFlag("-index")) { // Print InvertedIndex data to file (in JSON format)
-			final Path INDEX = argMap.getPath( "-index", Path.of("index.json") );
+			final Path index = argMap.getPath( "-index", Path.of("index.json") );
 			
 			try {
-				invIndex.toJson(INDEX);
+				invIndex.toJson(index);
 			}
 			catch (IOException e) {
-				System.err.printf("Error: Error occurred while dealing with path: %s%n", INDEX);
+				System.err.printf("Error: Error occurred while dealing with path: %s%n", index);
 			}
 			catch(Exception e) {
-				System.err.printf("Error: Could not output inverted index data to file: %s%n", INDEX);
+				System.err.printf("Error: Could not output inverted index data to file: %s%n", index);
 			}
 		}
 		
