@@ -17,8 +17,6 @@ public class WordStemCollector {
 	/** InvertedIndex this collector will store its data to */
 	private final InvertedIndex index;
 	
-
-	
 	/**
 	 * Constructor
 	 * @param index InvertedIndex this collector will save its stems to
