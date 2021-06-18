@@ -2,10 +2,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.TreeSet;
-import java.util.stream.Collectors;
 
 /**
  * Class responsible for running this project based on the provided command-line
@@ -31,51 +27,35 @@ public class Driver {
 		// Creating objects
 		ArgumentMap argMap = new ArgumentMap(args);
 		InvertedIndex invIndex = new InvertedIndex();
+		WordStemCollector stemCollector = new WordStemCollector(invIndex);
 		
 		if (argMap.hasFlag("-text")) { // Collect stems from file(s): argMap.getPath("-text") and store in invertedIndex
-			final Path TEXT = argMap.getPath("-text"); // TODO Fix variable name
+			final Path text = argMap.getPath("-text");
 			
 			try {
-				/*
-				 * TODO Either use static methods (where you don't need to create a 
-				 * variable here) -or- create a variable and initialize near your inverted index.
-				 */
-				// Note: If I multithread without making a var name here, will it still work?
-				new WordStemCollector(invIndex).collectStemsFrom(TEXT);
+				stemCollector.collectStemsFrom(text);
 			}
 			catch (NullPointerException e) {
-				System.err.printf("Error: path is missing or invalid: %s%n", TEXT);
+				System.err.printf("Error: path is missing or invalid: %s%n", text);
 			}
 			catch (Exception e) {
-				System.err.printf("Error: Could not build inverted index from path: %s%n", TEXT);
+				System.err.printf("Error: Could not build inverted index from path: %s%n", text);
 			}
 		}
-		
+
 		if (argMap.hasFlag("-index")) { // Print InvertedIndex data to file (in JSON format)
-			final Path INDEX = argMap.getPath( "-index", Path.of("index.json") );  // TODO Fix variable name
+			final Path index = argMap.getPath( "-index", Path.of("index.json") );
 			
 			try {
-				invIndex.toJson(INDEX);
+				invIndex.toJson(index);
 			}
 			catch (IOException e) {
-				System.err.printf("Error: Error occurred while dealing with path: %s%n", INDEX);
+				System.err.printf("Error: Error occurred while dealing with path: %s%n", index);
 			}
 			catch(Exception e) {
-				System.err.printf("Error: Could not output inverted index data to file: %s%n", INDEX);
+				System.err.printf("Error: Could not output inverted index data to file: %s%n", index);
 			}
 		}
-		
-		String line = "bubba";
-		
-		
-		// Exact:
-		Collection<String> bubba = TextFileStemmer.uniqueStems(line).stream()
-			.filter( invIndex.getStrings()::contains )
-			.collect( Collectors.toCollection(TreeSet::new) );
-		
-		TextFileStemmer.uniqueStems(line).stream().flatMap( stem -> turnStemIntoTreeSetOfPartialStems.stream() ).collect( Collectors.toCollection(TreeSet::new) );
-				partialStem
-				).forEach();
 
 		// calculate time elapsed and output
 		Duration elapsed = Duration.between(start, Instant.now());

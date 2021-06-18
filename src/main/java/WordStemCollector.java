@@ -17,9 +17,7 @@ public class WordStemCollector {
 	/** InvertedIndex this collector will store its data to */
 	private final InvertedIndex index;
 	
-	// TODO Stemmer objects are NOT thread-safe, so when it comes to project 3 you will want 1 stemmer per file
-	/** Stemmer used for stemming words */
-	private final static Stemmer stemmer = new SnowballStemmer(SnowballStemmer.ALGORITHM.ENGLISH);
+
 	
 	/**
 	 * Constructor
@@ -47,21 +45,16 @@ public class WordStemCollector {
 		}
 	}
 	
-	/* TODO 
-	private void parseFile(Path filePath) throws IOException {
-		parseFile(filePath, this.index);
-	}
-	*/
-
-	// TODO public static void parseFile(Path filePath, InvertedIndex index) throws IOException {
 	/**
 	 * Parses a file, collecting its stems and storing them to an inverted index
 	 * @param filePath path of one file
-	 * @throws IOException In case of IO e
+	 * @param index InvertedIndex to store stems into
+	 * @throws IOException In case of IO error
 	 */
-	private void parseFile(Path filePath) throws IOException {
+	public static void parseFile(Path filePath, InvertedIndex index) throws IOException {
 		int position = 1;
 		String location = filePath.toString();
+		Stemmer stemmer = new SnowballStemmer(SnowballStemmer.ALGORITHM.ENGLISH); // Note: Make these a task w/ index.merge() for P3
 		
 		try ( BufferedReader reader = Files.newBufferedReader(filePath, StandardCharsets.UTF_8) ) {
 			String line;
@@ -73,5 +66,14 @@ public class WordStemCollector {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Parses a file, collecting its stems and storing them to an inverted index
+	 * @param filePath path of one file
+	 * @throws IOException In case of IO error
+	 */
+	private void parseFile(Path filePath) throws IOException {
+		parseFile(filePath, this.index);
 	}
 }
