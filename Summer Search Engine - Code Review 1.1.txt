@@ -1,0 +1,16 @@
+Uppercase stuff
+	Use ALL CAPS for constant-like vars
+	Can rename var by right clicking var name, clicking refactor, clicking rename
+	Then changing text in var in one place changes them everywhere
+
+Multithreading question
+	Have 2 options:
+		1) Make class static
+		2) Make var near where you make all your vars and just reuse it
+		Do it
+
+
+TODO:
+	Make post on Github saying:
+		1) My stems test isn't working - expected: 6, only getting: 4
+		2) I'm on a Windows system

@@ -1,0 +1,12 @@
+Summer Search Engine Notes - Project 2
+
+searchResult (Comparable):
+
+	private final DecimalFormat FORMATTER
+	private final String location
+	private int matches
+	private double score
+
+	
+
+	

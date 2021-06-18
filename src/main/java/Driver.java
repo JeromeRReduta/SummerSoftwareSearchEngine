@@ -13,6 +13,7 @@ import java.time.Instant;
  */
 public class Driver {
 
+	// Note: THIS IS PROJECT 2 BRANCH - SWITCH TO MAIN ONE ONCE DESIGN PASSES
 	/**
 	 * Initializes the classes necessary based on the provided command-line
 	 * arguments. This includes (but is not limited to) how to build or search an
@@ -27,6 +28,7 @@ public class Driver {
 		// Creating objects
 		ArgumentMap argMap = new ArgumentMap(args);
 		InvertedIndex invIndex = new InvertedIndex();
+		IndexSearcher searcher = new IndexSearcher( invIndex, argMap.hasFlag("-exact") );
 		WordStemCollector stemCollector = new WordStemCollector(invIndex);
 		
 		if (argMap.hasFlag("-text")) { // Collect stems from file(s): argMap.getPath("-text") and store in invertedIndex
@@ -42,7 +44,34 @@ public class Driver {
 				System.err.printf("Error: Could not build inverted index from path: %s%n", text);
 			}
 		}
-
+		
+		if (argMap.hasFlag("-query")) {
+			final Path QUERY = argMap.getPath("-query");
+			
+			try {
+				
+				
+				searcher.search( QUERY,  argMap.hasFlag("-exact") );
+					/*
+					Collection<String> exactStemsFromLine = TextFileStemmer.uniqueStems(line);
+					
+					Collection<String> partialStemsFromLine = TextFileStemmer.uniqueStems(line).stream()
+							.flatMap( invIndex::getStemsStartingWith )
+							.collect( Collectors.toCollection(TreeSet::new) );
+					*/
+				
+				
+			}
+			catch (NullPointerException e) {
+				System.err.printf("Error: query path is missing or invalid: %s%n", QUERY);
+				e.printStackTrace();
+			}
+			catch (Exception e) {
+				System.out.println(e);
+				System.err.printf("Error: Could not search inverted index with path: %s%n", QUERY);
+			}
+		}
+		
 		if (argMap.hasFlag("-index")) { // Print InvertedIndex data to file (in JSON format)
 			final Path index = argMap.getPath( "-index", Path.of("index.json") );
 			
@@ -54,6 +83,34 @@ public class Driver {
 			}
 			catch(Exception e) {
 				System.err.printf("Error: Could not output inverted index data to file: %s%n", index);
+			}
+		}
+		
+		if (argMap.hasFlag("-counts")) { // Prints file string count data to file (in JSON format)
+			final Path COUNTS = argMap.getPath( "-counts", Path.of("counts.json") );
+			
+			try {
+				invIndex.stringCountsToJson(COUNTS);
+			}
+			catch(IOException e) {
+				System.err.printf("Error: Error occurred while dealing with path: %s%n", COUNTS);
+			}
+			catch(Exception e) {
+				System.err.printf("Error: Could not output string count data to file: %s%n", COUNTS);
+			}
+		}
+		
+		if (argMap.hasFlag("-results")) {
+			final Path RESULTS = argMap.getPath( "-results", Path.of("results.json") );
+			
+			try {
+				searcher.outputToFile(RESULTS);
+			}
+			catch(IOException e) {
+				System.err.printf("Error: Error occurred while dealign with path: %s%n", RESULTS);
+			}
+			catch (Exception e) {
+				System.err.printf("Error: Could not output search result data to file: %s%n", RESULTS);
 			}
 		}
 

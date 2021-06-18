@@ -44,6 +44,61 @@ public class SearchJsonWriter extends SimpleJsonWriter {
 		indent("}", writer, level);
 	}
 	
+	public static void asSearchResult(InvertedIndex.SearchResult element, Writer writer, int level) throws IOException { // TODO: Turn this and all other search result JSON funcs private once done testing
+		writer.write("{");
+		writer.write( indentStringBy('"' + "where" + '"' + ": " + '"' + element.location + '"' +  ",",
+				level + 1));
+		writer.write( indentStringBy('"' + "count" + '"' + ": " + element.count + ",",
+				level + 1));
+		writer.write( indentStringBy('"' + "score" + '"' + ": " + String.format("%.8f", element.score) + "\n",
+				level + 1));
+		indent("}", writer, level);
+	}
+	
+	public static void asSearchResultCollection(Collection<InvertedIndex.SearchResult> elements, Writer writer, int level) throws IOException {
+		if (elements == null) return; // Note: Deal w/ elements.isEmpty() filtering in indexSearcher
+		var entries = elements.iterator();
+		
+		writer.write("["); // Start of list and head value
+		if (entries.hasNext()) {
+			writer.write( "\n" + "\t".repeat(level + 1 ));
+			asSearchResult( entries.next(), writer, level + 1 );
+		}
+		
+		while (entries.hasNext()) { // All other values
+			writer.write( ",\n" + "\t".repeat(level + 1 ));
+			asSearchResult( entries.next(), writer, level + 1 );
+		}
+		writer.write("\n"); // End of list
+		indent("]", writer, level);
+	}
+	
+	public static void asSearchResultMap(Map<String, Collection<InvertedIndex.SearchResult>>elements, Writer writer, int level) throws IOException {
+		if (elements == null) return;
+		
+		var entries = elements.entrySet().iterator();
+		
+		writer.write("{"); // Start of list and head value
+		if (entries.hasNext()) {
+			var entry = entries.next();
+			writer.write( indentStringBy('"' + entry.getKey() + '"' + ": ",
+					level + 1));
+			asSearchResultCollection(entry.getValue(), writer, level + 1 );
+		}
+		
+		while (entries.hasNext()) { // All other values
+			var entry = entries.next();
+			writer.write( "," + indentStringBy('"' + entry.getKey() + '"' + ": ",
+					level + 1));
+			asSearchResultCollection(entry.getValue(), writer, level + 1 );
+		}
+		
+		writer.write("\n"); // End of list
+		indent("}", writer, level);
+		
+		
+	}
+	
 	/**
 	 * {@link #asStringMapStringMapIntCollection(Map, Writer, int)} for outputting to a file
 	 * @param elements elements to write
@@ -62,5 +117,29 @@ public class SearchJsonWriter extends SimpleJsonWriter {
 	 */
 	public static String asStringMapStringMapIntCollection(Map<String, ? extends Map<String, ? extends Collection<Integer>>> elements) {
 		return FunctionalWriter.writeToString(elements, (elem, writer) -> asStringMapStringMapIntCollection(elem, writer, 0));
+	}
+	
+	public static void asSearchResult(InvertedIndex.SearchResult element, Path path) throws IOException {
+		FunctionalWriter.writeToFile(element,  path, (elem, writer) -> asSearchResult(elem, writer, 0));
+	}
+	
+	public static String asSearchResult(InvertedIndex.SearchResult element) {
+		return FunctionalWriter.writeToString(element, (elem, writer) -> asSearchResult(elem, writer, 0));
+	}
+	
+	public static void asSearchResultCollection(Collection<InvertedIndex.SearchResult> elements, Path path) throws IOException {
+		FunctionalWriter.writeToFile(elements, path, (elem, writer) -> asSearchResultCollection(elem, writer, 0));
+	}
+	
+	public static String asSearchResultCollection(Collection<InvertedIndex.SearchResult> elements) {
+		return FunctionalWriter.writeToString(elements, (elem, writer) -> asSearchResultCollection(elem, writer, 0));
+	}
+	
+	public static void asSearchResultMap(Map<String, Collection<InvertedIndex.SearchResult>>elements, Path path) throws IOException {
+		FunctionalWriter.writeToFile(elements, path, (elem, writer) -> asSearchResultMap(elem, writer, 0));
+	}
+		
+	public static String asSearchResultMap(Map<String, Collection<InvertedIndex.SearchResult>>elements) {
+		return FunctionalWriter.writeToString(elements, (elem, writer) -> asSearchResultMap(elem, writer, 0));
 	}
 }
