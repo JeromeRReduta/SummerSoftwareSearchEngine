@@ -27,15 +27,13 @@ public class Driver {
 
 		// Creating objects
 		ArgumentMap argMap = new ArgumentMap(args);
-		InvertedIndex invIndex = new InvertedIndex();
-		IndexSearcher searcher = new IndexSearcher( invIndex, argMap.hasFlag("-exact") );
-		WordStemCollector stemCollector = new WordStemCollector(invIndex);
+		SearchEngine searchEngine = new SearchEngine(argMap);
 		
 		if (argMap.hasFlag("-text")) { // Collect stems from file(s): argMap.getPath("-text") and store in invertedIndex
 			final Path text = argMap.getPath("-text");
 			
 			try {
-				stemCollector.collectStemsFrom(text);
+				searchEngine.parseFilesFrom(text);
 			}
 			catch (NullPointerException e) {
 				System.err.printf("Error: path is missing or invalid: %s%n", text);
@@ -46,29 +44,18 @@ public class Driver {
 		}
 		
 		if (argMap.hasFlag("-query")) {
-			final Path QUERY = argMap.getPath("-query");
+			final Path query = argMap.getPath("-query");
 			
 			try {
-				
-				
-				searcher.search( QUERY,  argMap.hasFlag("-exact") );
-					/*
-					Collection<String> exactStemsFromLine = TextFileStemmer.uniqueStems(line);
-					
-					Collection<String> partialStemsFromLine = TextFileStemmer.uniqueStems(line).stream()
-							.flatMap( invIndex::getStemsStartingWith )
-							.collect( Collectors.toCollection(TreeSet::new) );
-					*/
-				
-				
+				searchEngine.searchFrom( query, argMap.hasFlag("-exact") );
 			}
 			catch (NullPointerException e) {
-				System.err.printf("Error: query path is missing or invalid: %s%n", QUERY);
+				System.err.printf("Error: query path is missing or invalid: %s%n", query);
 				e.printStackTrace();
 			}
 			catch (Exception e) {
 				System.out.println(e);
-				System.err.printf("Error: Could not search inverted index with path: %s%n", QUERY);
+				System.err.printf("Error: Could not search inverted index with path: %s%n", query);
 			}
 		}
 		
@@ -76,7 +63,7 @@ public class Driver {
 			final Path index = argMap.getPath( "-index", Path.of("index.json") );
 			
 			try {
-				invIndex.toJson(index);
+				searchEngine.outputIndexTo(index);
 			}
 			catch (IOException e) {
 				System.err.printf("Error: Error occurred while dealing with path: %s%n", index);
@@ -87,30 +74,30 @@ public class Driver {
 		}
 		
 		if (argMap.hasFlag("-counts")) { // Prints file string count data to file (in JSON format)
-			final Path COUNTS = argMap.getPath( "-counts", Path.of("counts.json") );
+			final Path counts = argMap.getPath( "-counts", Path.of("counts.json") );
 			
 			try {
-				invIndex.stringCountsToJson(COUNTS);
+				searchEngine.outputWordCountsTo(counts);
 			}
 			catch(IOException e) {
-				System.err.printf("Error: Error occurred while dealing with path: %s%n", COUNTS);
+				System.err.printf("Error: Error occurred while dealing with path: %s%n", counts);
 			}
 			catch(Exception e) {
-				System.err.printf("Error: Could not output string count data to file: %s%n", COUNTS);
+				System.err.printf("Error: Could not output string count data to file: %s%n", counts);
 			}
 		}
 		
 		if (argMap.hasFlag("-results")) {
-			final Path RESULTS = argMap.getPath( "-results", Path.of("results.json") );
+			final Path results = argMap.getPath( "-results", Path.of("results.json") );
 			
 			try {
-				searcher.outputToFile(RESULTS);
+				searchEngine.outputResultsTo(results);
 			}
 			catch(IOException e) {
-				System.err.printf("Error: Error occurred while dealign with path: %s%n", RESULTS);
+				System.err.printf("Error: Error occurred while dealign with path: %s%n", results);
 			}
 			catch (Exception e) {
-				System.err.printf("Error: Could not output search result data to file: %s%n", RESULTS);
+				System.err.printf("Error: Could not output search result data to file: %s%n", results);
 			}
 		}
 

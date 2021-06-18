@@ -26,7 +26,6 @@ public class IndexSearcher {
 	}
 	
 	public void search(final Path queryPath, boolean exact) throws IOException {
-		System.out.println("EXACT IS: " + exact);
 		Consumer<Set<String>> searchFunc = exact ? this::exactSearch : this::partialSearch;
 	
 		try (BufferedReader reader = Files.newBufferedReader(queryPath, StandardCharsets.UTF_8)) {
