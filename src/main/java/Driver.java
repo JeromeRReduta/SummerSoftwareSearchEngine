@@ -41,8 +41,9 @@ public class Driver {
 			catch (Exception e) {
 				System.err.printf("Error: Could not build inverted index from path: %s%n", text);
 			}
+			
+			SearchJsonWriter.a
 		}
-		
 		if (argMap.hasFlag("-query")) {
 			final Path query = argMap.getPath("-query");
 			
