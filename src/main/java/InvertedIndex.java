@@ -1,9 +1,7 @@
 import java.io.IOException;
+import java.io.Writer;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -59,6 +57,13 @@ public class InvertedIndex {
 		return Collections.unmodifiableSet( map.keySet() );
 	}
 	
+	/**
+	 * Returns an unmodifiable view of the strings in the index, starting with a given string (or if that string isn't in the map,
+	 * starting with the first string in the map after the given string)
+	 * @param start string
+	 * @return An unmodifiable view of the index. If the string exists in the map, this set will start with that given string. Otherwise,
+	 * this set will start with the first string in the map that comes after the given string.
+	 */
 	public Set<String> getStringsStartingWith(String start) {
 		return Collections.unmodifiableSet( map.tailMap(start).keySet() );
 	}
@@ -91,44 +96,6 @@ public class InvertedIndex {
 	public Map<String, Integer> getStringCount() {
 		return Collections.unmodifiableMap(stringCount);
 	}
-	
-
-	public Collection<String> getPartialStemsFrom(Collection<String> stemSet) {
-		List<String> partialStems = new ArrayList<>();
-		
-		
-		// TODO: Create a word frequency map here, set each key's value to 1, then increment as you find more of it, then return map instead of stemSet
-		// TODO: Separate Exact and partial search into 2 different funcs? - exact search just uses list as is, partial search makes freq map out of it
-		for (String stem : stemSet) {
-			
-			
-			
-			var it = map.tailMap(stem).keySet().iterator();
-			
-			String current;
-			while ( it.hasNext() && (current = it.next()).startsWith(stem) ) {
-
-				partialStems.add(current);
-			}
-		}
-		
-		/*
-		System.out.println(partialStems.stream().collect(
-				Collectors.groupingBy(Function.identity(), HashMap::new, Collectors.counting())));
-		*/
-		return partialStems;
-	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 	
 	/**
 	 * Returns how many times a given string appears in the index
@@ -246,72 +213,43 @@ public class InvertedIndex {
 	 */
 	public class SearchResult implements Comparable<SearchResult> {
 		
-		//TODO: Make private
-		public final String location;
-		public int count;
-		public int total;
-		public double score;
+		/** location where a match is found */
+		private final String location;
 		
+		/** number of matches in this result's location */
+		private int count;
+
+		/** This result's score, defined as the number of matches / the number of words in the result's location */
+		private double score;
+		
+		/**
+		 * Constructor
+		 * @param location location of stem
+		 */
 		public SearchResult(String location) {
 			this.location = location;
 			this.count = 0;
-			this.total = 0;
 			this.score = 0;
 		}
 		
+		/**
+		 * Updates a search result based on a given query
+		 * @param query query
+		 */
 		public void update(String query) {
 			update(query, 1);
 		}
 		
+		/**
+		 * Updates a search result based on a given query, multiplied by the multiplier. This is generally used for partial stem search,
+		 * which double-counts shared partial stems
+		 * @param query query
+		 * @param multiplier multiplier
+		 */
 		public void update(String query, int multiplier) {
 			count += numOfTimesStringAppearsInLocation(query,  location) * multiplier;
 			score = (double)count/stringCount.get(location);
 		}
-		
-		
-		public SearchResult(String location, Collection<String> querySet) {
-			
-			this.location = location;
-			this.count = 0;
-			this.total = 0;
-			this.score = 0;
-			
-			int tempCount = 0;
-			
-			for (String query : querySet) {
-				tempCount += numOfTimesStringAppearsInLocation(query, location);
-			}
-			this.count = tempCount;
-			
-			this.score = this.count > 0 ? (double)this.count / stringCount.get(location) : 0.0;
-		}
-
-
-		public SearchResult(String location, Map<String, Integer> partialStemFreqMap) {
-			this.location = location;
-			int tempCount = 0;
-			
-			var partialStems = partialStemFreqMap.keySet();
-			
-			for (String partialStem : partialStems) {
-				tempCount += (numOfTimesStringAppearsInLocation(partialStem, location) * partialStemFreqMap.get(partialStem));
-				if (partialStems.contains("yourself")) {
-				
-					System.out.printf("Stuff:%n"
-							+ "\t->numOfTimes: %d%n"
-							+ "\t->Freq of word: %d%n"
-							+ "\t->Total: %d\n",
-							numOfTimesStringAppearsInLocation(partialStem, location),
-							partialStemFreqMap.get(partialStem),
-							numOfTimesStringAppearsInLocation(partialStem, location) * partialStemFreqMap.get(partialStem));
-				}
-			}
-			this.count = tempCount;
-			this.score = this.count > 0 ? (double)this.count / stringCount.get(location) : 0.0;
-			
-			System.out.println(this.toString());
-		}
-
 
 		@Override
 		public int compareTo(InvertedIndex.SearchResult other) {
@@ -329,6 +267,31 @@ public class InvertedIndex {
 			return "'Where': " + location + "\n" +
 					"'Count': " + count + "\n" +
 					"'Score': " + String.format("%.8f", score) + "\n";
+		}
+		
+		/**
+		 * Outputs this SearchResult to a String, to JSON format
+		 * @return This SearchResult to a String, to JSON format
+		 */
+		public String toJson() {
+			return SimpleJsonWriter.FunctionalWriter.writeToString(this, (elem, writer) -> this.toJson(writer, 0));
+		}
+		
+		/**
+		 * Writes this search result in JSON format
+		 * @param writer writer to use
+		 * @param level base indent level
+		 * @throws IOException in case of IO Error
+		 */
+		public void toJson(Writer writer, int level) throws IOException {
+			writer.write("{");
+			writer.write( SimpleJsonWriter.indentStringBy('"' + "where" + '"' + ": " + '"' + location + '"' +  ",",
+					level + 1));
+			writer.write( SimpleJsonWriter.indentStringBy('"' + "count" + '"' + ": " + count + ",",
+					level + 1));
+			writer.write( SimpleJsonWriter.indentStringBy('"' + "score" + '"' + ": " + String.format("%.8f", score) + "\n",
+					level + 1));
+			SimpleJsonWriter.indent("}", writer, level);
 		}
 		
 	}

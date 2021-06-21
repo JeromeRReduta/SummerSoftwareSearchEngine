@@ -47,7 +47,7 @@ public class Driver {
 			final Path query = argMap.getPath("-query");
 			
 			try {
-				searchEngine.searchFrom( query, argMap.hasFlag("-exact") );
+				searchEngine.searchFrom(query);
 			}
 			catch (NullPointerException e) {
 				System.err.printf("Error: query path is missing or invalid: %s%n", query);

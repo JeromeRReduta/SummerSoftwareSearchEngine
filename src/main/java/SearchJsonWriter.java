@@ -44,36 +44,38 @@ public class SearchJsonWriter extends SimpleJsonWriter {
 		indent("}", writer, level);
 	}
 	
-	// TODO: Move this to SearchResult when you make SearchResult data private
-	private static void asSearchResult(InvertedIndex.SearchResult element, Writer writer, int level) throws IOException { // TODO: Turn this and all other search result JSON funcs private once done testing
-		writer.write("{");
-		writer.write( indentStringBy('"' + "where" + '"' + ": " + '"' + element.location + '"' +  ",",
-				level + 1));
-		writer.write( indentStringBy('"' + "count" + '"' + ": " + element.count + ",",
-				level + 1));
-		writer.write( indentStringBy('"' + "score" + '"' + ": " + String.format("%.8f", element.score) + "\n",
-				level + 1));
-		indent("}", writer, level);
-	}
-	
+	/**
+	 * Writes the elements as a pretty JSON object, where that object is a collection of SearchResults
+	 * @param elements elements to write
+	 * @param writer writer to use
+	 * @param level initial indent level
+	 * @throws IOException in case of IO Error
+	 */
 	private static void asSearchResultCollection(Collection<InvertedIndex.SearchResult> elements, Writer writer, int level) throws IOException {
-		if (elements == null) return; // Note: Deal w/ elements.isEmpty() filtering in indexSearcher
+		if (elements == null) return;
 		var entries = elements.iterator();
 		
 		writer.write("["); // Start of list and head value
 		if (entries.hasNext()) {
 			writer.write( "\n" + "\t".repeat(level + 1 ));
-			asSearchResult( entries.next(), writer, level + 1 );
+			entries.next().toJson(writer,  level + 1);
 		}
 		
 		while (entries.hasNext()) { // All other values
 			writer.write( ",\n" + "\t".repeat(level + 1 ));
-			asSearchResult( entries.next(), writer, level + 1 );
+			entries.next().toJson(writer,  level + 1);
 		}
 		writer.write("\n"); // End of list
 		indent("]", writer, level);
 	}
 	
+	/**
+	 * Writes the elements as a pretty JSON object, where that object is a map of search results, organized by the stem set used to search them by
+	 * @param elements elements to write
+	 * @param writer writer to use
+	 * @param level initial indent level
+	 * @throws IOException in case of IO Error
+	 */
 	public static void asSearchResultMap(Map<String, Collection<InvertedIndex.SearchResult>>elements, Writer writer, int level) throws IOException {
 		if (elements == null) return;
 		
@@ -96,8 +98,6 @@ public class SearchJsonWriter extends SimpleJsonWriter {
 		
 		writer.write("\n"); // End of list
 		indent("}", writer, level);
-		
-		
 	}
 	
 	/**
@@ -120,10 +120,21 @@ public class SearchJsonWriter extends SimpleJsonWriter {
 		return FunctionalWriter.writeToString(elements, (elem, writer) -> asStringMapStringMapIntCollection(elem, writer, 0));
 	}
 	
+	/**
+	 * {@link #asSearchResultMap(Map)} for outputting to file
+	 * @param elements elements to write
+	 * @param path output path
+	 * @throws IOException in case of IO Error
+	 */
 	public static void asSearchResultMap(Map<String, Collection<InvertedIndex.SearchResult>>elements, Path path) throws IOException {
 		FunctionalWriter.writeToFile(elements, path, (elem, writer) -> asSearchResultMap(elem, writer, 0));
 	}
-		
+	
+	/**
+	 * {@link #asSearchResultMap(Map)} for outputting as String
+	 * @param elements elements to write
+	 * @return SearchResultMap, as a String in JSON format
+	 */
 	public static String asSearchResultMap(Map<String, Collection<InvertedIndex.SearchResult>>elements) {
 		return FunctionalWriter.writeToString(elements, (elem, writer) -> asSearchResultMap(elem, writer, 0));
 	}
