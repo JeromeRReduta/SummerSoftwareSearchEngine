@@ -237,44 +237,77 @@ public class InvertedIndex {
 	}
 	
 	public void exactSearchAndSaveTo(Collection<String> stemSet, Map<String, Collection<SearchResult>> resultMap) {
-		HashSet<String> pathsContainingAQuery = new HashSet<>();
-		Collection<SearchResult> resultCollection = new TreeSet<>();
+		Map<String, SearchResult> lookup = new TreeMap<>();
 		
 		for (String query : stemSet) {
+			if (map.containsKey(query)) {
+				// updateResults(map.get(query).keySet(), results, lookup, query)
+				for (String pathName : map.get(query).keySet()) {
+					if (!lookup.containsKey(pathName)) {
+						SearchResult result = new SearchResult(pathName);
+						lookup.put(pathName, result);
+					}
+					lookup.get(pathName).update(query);
+				}
+				
+				
+				
+				
+			}
+		}
+		
+		
+		
+		resultMap.put( String.join(" ",  stemSet), lookup.values() );
+	}
+	
+	public void partialSearchAndSaveTo(Collection<String> stemSet, Map<String, Collection<SearchResult>> resultMap) {
+		HashSet<String> pathsContainingAQuery = new HashSet<>();
+		Collection<SearchResult> resultCollection = new TreeSet<>();
+		Map<String, Integer> partialStemFreqMap = new TreeMap<>();
+		
+		
+		// TODO: Create a word frequency map here, set each key's value to 1, then increment as you find more of it, then return map instead of stemSet
+		// TODO: Separate Exact and partial search into 2 different funcs? - exact search just uses list as is, partial search makes freq map out of it
+		for (String stem : stemSet) {
+			var it = map.tailMap(stem).keySet().iterator();
+			
+			String current;
+			while ( it.hasNext() && (current = it.next()).startsWith(stem) ) {
+				partialStemFreqMap.compute(current,  (k, v) -> v == null ? 1 : v + 1); // Got this implementation from https://www.baeldung.com/java-word-frequency
+			}
+		}
+		
+		var partialStems = partialStemFreqMap.keySet();
+		
+		for (String query : partialStems) {
 			if ( contains(query) ) {
 				pathsContainingAQuery.addAll( map.get(query).keySet() );
 			}
 		}
 		
-		for (String path : pathsContainingAQuery) {
-			resultCollection.add( new SearchResult(path, stemSet) );
+		if (partialStems.contains("yourself")) {
+			System.out.println(pathsContainingAQuery);
 		}
+		
+		for (String path : pathsContainingAQuery) {
+			resultCollection.add( new SearchResult(path, partialStemFreqMap) );
+		}
+		
+		
+		/*
+		System.out.println(partialStems.stream().collect(
+				Collectors.groupingBy(Function.identity(), HashMap::new, Collectors.counting())));
+		*/
+		
+		
+		
+		
+		
 		
 		resultMap.put( String.join(" ",  stemSet), resultCollection );
 	}
-	
-	/*
-	public Map<String, Collection<SearchResult>> exactSearch(Collection<String> stemSet) {
-		HashSet<String> pathsContainingAQuery = new HashSet<>();
-		Map<String, Collection<SearchResult>> searchResultMap = new TreeMap<>();
-		Collection<SearchResult> searchResultCollection = new TreeSet<>();
-		
-		for (String query : stemSet) {
-			if ( contains(query) ) {
-				pathsContainingAQuery.addAll( map.get(query).keySet() );
-			}
-		}
-		
-		for (String path : pathsContainingAQuery) {
-			results.add( new SearchResult(path, queries) );
-		}
-		
-		
-		
-		searchResultMap.put( String.join(" ", stemSet), searchResultCollection );
-	}
-	
-	*/
+
 	public Collection<SearchResult> exactSearch(Collection<String> queries) {
 		/* Functional approach */
 		/*
@@ -314,13 +347,31 @@ public class InvertedIndex {
 	 */
 	public class SearchResult implements Comparable<SearchResult> {
 		
+		//TODO: Make private
 		public final String location;
-		public final int count;
-		public final double score;
-		// TODO: Make 2 different constructors - one for exact search, one for partial search
+		public int count;
+		public int total;
+		public double score;
+		
+		public SearchResult(String location) {
+			this.location = location;
+			this.count = 0;
+			this.total = 0;
+			this.score = 0;
+		}
+		
+		public void update(String query) {
+			count += numOfLocationsContainingStrings(query);
+			score = (double)count/stringCount.get(location);
+		}
+		
+		
 		public SearchResult(String location, Collection<String> querySet) {
 			
 			this.location = location;
+			this.count = 0;
+			this.total = 0;
+			this.score = 0;
 			
 			int tempCount = 0;
 			
@@ -330,6 +381,32 @@ public class InvertedIndex {
 			this.count = tempCount;
 			
 			this.score = this.count > 0 ? (double)this.count / stringCount.get(location) : 0.0;
+		}
+
+
+		public SearchResult(String location, Map<String, Integer> partialStemFreqMap) {
+			this.location = location;
+			int tempCount = 0;
+			
+			var partialStems = partialStemFreqMap.keySet();
+			
+			for (String partialStem : partialStems) {
+				tempCount += (numOfTimesStringAppearsInLocation(partialStem, location) * partialStemFreqMap.get(partialStem));
+				if (partialStems.contains("yourself")) {
+				
+					System.out.printf("Stuff:%n"
+							+ "\t->numOfTimes: %d%n"
+							+ "\t->Freq of word: %d%n"
+							+ "\t->Total: %d\n",
+							numOfTimesStringAppearsInLocation(partialStem, location),
+							partialStemFreqMap.get(partialStem),
+							numOfTimesStringAppearsInLocation(partialStem, location) * partialStemFreqMap.get(partialStem));
+				}
+			}
+			this.count = tempCount;
+			this.score = this.count > 0 ? (double)this.count / stringCount.get(location) : 0.0;
+			
+			System.out.println(this.toString());
 		}
 
 

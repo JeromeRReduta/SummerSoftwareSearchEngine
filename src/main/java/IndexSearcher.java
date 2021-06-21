@@ -43,10 +43,8 @@ public class IndexSearcher {
 	
 	public void partialSearch(Collection<String> stemSet) {
 		if (stemSet != null && !stemSet.isEmpty()) {
-			searchResultMap.put( String.join(" ",  stemSet), index.exactSearch( index.getPartialStemsFrom(stemSet) ) );
+			index.partialSearchAndSaveTo(stemSet, searchResultMap);
 		}
-		
-		
 	}
 	
 	public void outputToFile(final Path path) throws IOException {
