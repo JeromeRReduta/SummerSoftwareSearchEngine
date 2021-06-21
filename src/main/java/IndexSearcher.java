@@ -37,6 +37,17 @@ public class IndexSearcher {
 		this.index = index;
 		this.searchResultMap = new TreeMap<>();
 		
+		/*
+		 * TODO Move stemming into the searchFunc lambda expression
+		 * Take in instead of a Collection a string String that needs to be parsed
+		 * 
+		 * 1) Stem the line into individual query words
+		 * 2) Return if that was empty
+		 * 3) Save the result of String.join(" ",  stemSet)
+		 * 4) Return if already did this search, and that joined string is in your searchResultMap
+		 * 5) Only search if made it past that point
+		 */
+		
 		if (exact) {
 			searchFunc = (stemSet) -> {
 				if (stemSet != null && !stemSet.isEmpty()) {
@@ -82,6 +93,7 @@ public class IndexSearcher {
 	 * @author JRRed
 	 */
 	private class OneStemSetSearchTask {
+		// TODO Use private final keywords
 		/** Lookup map, to make sure we create a given search result only once */
 		Map<String, InvertedIndex.SearchResult> lookup;
 		
@@ -100,6 +112,8 @@ public class IndexSearcher {
 			this.results = new ArrayList<>();
 			this.stemSet = stemSet;
 		}
+		
+		// TODO May need to move more of this logic into inverted index
 		
 		/**
 		 * Searches the index for only the stems in the stemset
