@@ -14,3 +14,62 @@ TODO:
 	Make post on Github saying:
 		1) My stems test isn't working - expected: 6, only getting: 4
 		2) I'm on a Windows system
+
+
+
+________________________________________
+
+Actual refactoring - for P2
+	Note: P1 was conditional pass, so I just refactored that and submitted it
+
+Partial Search:
+	Partial search actually double counts partial stems
+
+		E.g. given the exact stems {your, yourself, yourselv}
+			your -> partial stems {your, yourself*, yourselv**}
+			yourself -> partial stems {yourself*}
+			yourselv -> partial stems {yourselv**}
+
+		*both are yourself
+		**both are yourselv
+
+		But we want partial stems to look like this:
+			{your, yourself, yourselv, yourself, yourselv} <-- gives correct partial search scores
+		Not this:
+			{your, yourself, yourselv} <-- gives wrong partial search scores, fails tests
+		
+	Let's make this explicit
+
+		Instead of partial stems list:
+			{your, yourself, yourselv, yourself, yourselv}
+
+		Have partial stems map:
+			{
+				your: 1
+				yourself: 2
+				yourselv: 2
+			}
+
+		Then in SearchResult constructor, instead of searching through all of list (which involves searching the same string twice)
+		can just search for each word once and multiply the result by the map value
+
+		E.g. instead of:
+			tempCount += numOfTimesStringAppearsInLocation("your", location)
+
+			// Search for "yourself" twice - get same results twice
+			tempCount += numOfTimesStringAppearsInLocation("yourself", location)
+			tempCount += numOfTimesStringAppearsInLocation("yourself", location)
+
+			// Search for "yourselv" twice - get same results twice
+			tempCount += numOfTimesStringAppearsInLocation("yourselv", location)
+			tempCount += numOfTimesStringAppearsInLocation("yourselv", location)
+
+		Can do this:
+			tempCount += numOfTimesStringAppearsInLocation("your", location) * map.get("your") // search * 1
+
+			tempCount += numOfTimesStringAppearsInLocation("yourself", location) * map.get("yourself") // search * 2
+
+			tempCount += numOfTimesStringAppearsInLocation("yourselv", location * map.get("yourselv") // search * 2
+			
+			
+				

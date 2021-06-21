@@ -60,6 +60,10 @@ public class InvertedIndex {
 		return Collections.unmodifiableSet( map.keySet() );
 	}
 	
+	public Set<String> getStringsStartingWith(String start) {
+		return Collections.unmodifiableSet( map.tailMap(start).keySet() );
+	}
+	
 	/**
 	 * Returns an unmodifiable view of all the locations that contain the given string
 	 * @param str string
@@ -93,32 +97,28 @@ public class InvertedIndex {
 	public Collection<String> getPartialStemsFrom(Collection<String> stemSet) {
 		List<String> partialStems = new ArrayList<>();
 		
+		
+		// TODO: Create a word frequency map here, set each key's value to 1, then increment as you find more of it, then return map instead of stemSet
+		// TODO: Separate Exact and partial search into 2 different funcs? - exact search just uses list as is, partial search makes freq map out of it
 		for (String stem : stemSet) {
+			
+			
+			
 			var it = map.tailMap(stem).keySet().iterator();
 			
 			String current;
 			while ( it.hasNext() && (current = it.next()).startsWith(stem) ) {
+
 				partialStems.add(current);
 			}
 		}
 		
+		/*
+		System.out.println(partialStems.stream().collect(
+				Collectors.groupingBy(Function.identity(), HashMap::new, Collectors.counting())));
+		*/
 		return partialStems;
 	}
-	
-	public Set<String> getStemsStartingWith(String stem) {
-		if ( stem == null || stem.isEmpty() ) return null;
-		
-		Set<String> partialStems = new HashSet<>();
-		var it = map.tailMap(stem).keySet().iterator();
-		
-		String current;
-		while ( it.hasNext() && (current = it.next()).startsWith(stem) ) {
-			partialStems.add(current);
-		}
-		
-		return partialStems;
-	}
-	
 	
 	
 	
@@ -236,8 +236,45 @@ public class InvertedIndex {
 		SimpleJsonWriter.asObject(stringCount, path);
 	}
 	
+	public void exactSearchAndSaveTo(Collection<String> stemSet, Map<String, Collection<SearchResult>> resultMap) {
+		HashSet<String> pathsContainingAQuery = new HashSet<>();
+		Collection<SearchResult> resultCollection = new TreeSet<>();
+		
+		for (String query : stemSet) {
+			if ( contains(query) ) {
+				pathsContainingAQuery.addAll( map.get(query).keySet() );
+			}
+		}
+		
+		for (String path : pathsContainingAQuery) {
+			resultCollection.add( new SearchResult(path, stemSet) );
+		}
+		
+		resultMap.put( String.join(" ",  stemSet), resultCollection );
+	}
 	
+	/*
+	public Map<String, Collection<SearchResult>> exactSearch(Collection<String> stemSet) {
+		HashSet<String> pathsContainingAQuery = new HashSet<>();
+		Map<String, Collection<SearchResult>> searchResultMap = new TreeMap<>();
+		Collection<SearchResult> searchResultCollection = new TreeSet<>();
+		
+		for (String query : stemSet) {
+			if ( contains(query) ) {
+				pathsContainingAQuery.addAll( map.get(query).keySet() );
+			}
+		}
+		
+		for (String path : pathsContainingAQuery) {
+			results.add( new SearchResult(path, queries) );
+		}
+		
+		
+		
+		searchResultMap.put( String.join(" ", stemSet), searchResultCollection );
+	}
 	
+	*/
 	public Collection<SearchResult> exactSearch(Collection<String> queries) {
 		/* Functional approach */
 		/*
@@ -280,14 +317,14 @@ public class InvertedIndex {
 		public final String location;
 		public final int count;
 		public final double score;
-		
+		// TODO: Make 2 different constructors - one for exact search, one for partial search
 		public SearchResult(String location, Collection<String> querySet) {
+			
 			this.location = location;
 			
 			int tempCount = 0;
 			
 			for (String query : querySet) {
-				
 				tempCount += numOfTimesStringAppearsInLocation(query, location);
 			}
 			this.count = tempCount;

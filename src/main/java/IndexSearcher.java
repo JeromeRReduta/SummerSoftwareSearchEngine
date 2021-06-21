@@ -5,28 +5,20 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
-import java.util.function.Function;
+import java.util.function.Consumer;
 
 public class IndexSearcher {
 
 	private final Map<String, Collection<InvertedIndex.SearchResult>> searchResultMap;
 	private final InvertedIndex index;
-	private Function<Collection<String>, Collection<String>> stemGettingFunc;
+	private Consumer<Collection<String>> searchFunc;
 	
 	
 	public IndexSearcher(InvertedIndex index, boolean exact) {
 		this.index = index;
 		this.searchResultMap = new TreeMap<>();
-		
-		if (exact) {
-			stemGettingFunc = stemSet -> stemSet;
-		}
-		else {
-			stemGettingFunc = stemSet -> index.getPartialStemsFrom(stemSet);
-		}
-		
+		this.searchFunc = exact ? this::exactSearch : this::partialSearch;
 	}
 	
 	public void search(final Path queryPath, boolean exact) throws IOException {
@@ -35,24 +27,21 @@ public class IndexSearcher {
 			String line;
 			
 			while ( (line = reader.readLine()) != null ) {
-				Collection<String> stemSet = TextFileStemmer.uniqueStems(line);
-				
-				if (stemSet != null && !stemSet.isEmpty()) {
-					searchResultMap.put( String.join(" ",  stemSet), index.exactSearch( stemGettingFunc.apply(stemSet) ) );
-				}
-				
+				searchFunc.accept( TextFileStemmer.uniqueStems(line) );
 			}
 		}
 	}
 	
-	public void exactSearch(Set<String> stemSet) {
-		
+	public void exactSearch(Collection<String> stemSet) {
+		if (stemSet != null && !stemSet.isEmpty()) {
+			index.exactSearchAndSaveTo(stemSet, searchResultMap);
+		}
 		// Running: actual\search-exact-guten.json... Elapsed: 3.113000 seconds ( w/o matching stems func)
 		// Running: actual\search-exact-guten.json... Elapsed: 3.632000 seconds ( w/ matching stems func)
 		 
 	}
 	
-	public void partialSearch(Set<String> stemSet) {
+	public void partialSearch(Collection<String> stemSet) {
 		if (stemSet != null && !stemSet.isEmpty()) {
 			searchResultMap.put( String.join(" ",  stemSet), index.exactSearch( index.getPartialStemsFrom(stemSet) ) );
 		}
