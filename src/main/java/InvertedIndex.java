@@ -3,7 +3,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -236,106 +235,6 @@ public class InvertedIndex {
 		SimpleJsonWriter.asObject(stringCount, path);
 	}
 	
-	public void exactSearchAndSaveTo(Collection<String> stemSet, Map<String, Collection<SearchResult>> resultMap) {
-		Map<String, SearchResult> lookup = new TreeMap<>();
-		
-		for (String query : stemSet) {
-			if (map.containsKey(query)) {
-				// updateResults(map.get(query).keySet(), results, lookup, query)
-				for (String pathName : map.get(query).keySet()) {
-					if (!lookup.containsKey(pathName)) {
-						SearchResult result = new SearchResult(pathName);
-						lookup.put(pathName, result);
-					}
-					lookup.get(pathName).update(query);
-				}
-				
-				
-				
-				
-			}
-		}
-		
-		
-		
-		resultMap.put( String.join(" ",  stemSet), lookup.values() );
-	}
-	
-	public void partialSearchAndSaveTo(Collection<String> stemSet, Map<String, Collection<SearchResult>> resultMap) {
-		HashSet<String> pathsContainingAQuery = new HashSet<>();
-		Collection<SearchResult> resultCollection = new TreeSet<>();
-		Map<String, Integer> partialStemFreqMap = new TreeMap<>();
-		
-		
-		// TODO: Create a word frequency map here, set each key's value to 1, then increment as you find more of it, then return map instead of stemSet
-		// TODO: Separate Exact and partial search into 2 different funcs? - exact search just uses list as is, partial search makes freq map out of it
-		for (String stem : stemSet) {
-			var it = map.tailMap(stem).keySet().iterator();
-			
-			String current;
-			while ( it.hasNext() && (current = it.next()).startsWith(stem) ) {
-				partialStemFreqMap.compute(current,  (k, v) -> v == null ? 1 : v + 1); // Got this implementation from https://www.baeldung.com/java-word-frequency
-			}
-		}
-		
-		var partialStems = partialStemFreqMap.keySet();
-		
-		for (String query : partialStems) {
-			if ( contains(query) ) {
-				pathsContainingAQuery.addAll( map.get(query).keySet() );
-			}
-		}
-		
-		if (partialStems.contains("yourself")) {
-			System.out.println(pathsContainingAQuery);
-		}
-		
-		for (String path : pathsContainingAQuery) {
-			resultCollection.add( new SearchResult(path, partialStemFreqMap) );
-		}
-		
-		
-		/*
-		System.out.println(partialStems.stream().collect(
-				Collectors.groupingBy(Function.identity(), HashMap::new, Collectors.counting())));
-		*/
-		
-		
-		
-		
-		
-		
-		resultMap.put( String.join(" ",  stemSet), resultCollection );
-	}
-
-	public Collection<SearchResult> exactSearch(Collection<String> queries) {
-		/* Functional approach */
-		/*
-		return queries.stream()
-				.flatMap( query ->contains(query) ? map.get(query).keySet().stream() : Stream.empty() )
-				.distinct()
-				.map( pathName -> new SearchResult(pathName, queries) )
-				.collect( Collectors.toCollection( TreeSet::new ) );
-		*/
-		/* Imperative approach */
-		
-		HashSet<String> pathsContainingAQuery = new HashSet<>();
-		TreeSet<SearchResult> results = new TreeSet<>();
-		
-		for (String query : queries) {
-			if ( contains(query) ) {
-				pathsContainingAQuery.addAll( map.get(query).keySet() );
-			}
-		}
-		
-		for (String path : pathsContainingAQuery) {
-			results.add( new SearchResult(path, queries) );
-		}
-		
-		return results;
-		
-	}
-	
 
 	/**
 	 * Class whose sole responsibility is to hold data gained from searching the index
@@ -361,7 +260,11 @@ public class InvertedIndex {
 		}
 		
 		public void update(String query) {
-			count += numOfLocationsContainingStrings(query);
+			update(query, 1);
+		}
+		
+		public void update(String query, int multiplier) {
+			count += numOfTimesStringAppearsInLocation(query,  location) * multiplier;
 			score = (double)count/stringCount.get(location);
 		}
 		
