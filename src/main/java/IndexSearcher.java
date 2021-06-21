@@ -59,7 +59,6 @@ public class IndexSearcher {
 	 * @throws IOException in case of IO error
 	 */
 	public void search(final Path queryPath) throws IOException {
-	
 		try (BufferedReader reader = Files.newBufferedReader(queryPath, StandardCharsets.UTF_8)) {
 			String line;
 			
@@ -81,11 +80,9 @@ public class IndexSearcher {
 	/**
 	 * Inner class whose sole responsibility is to represent a task for searching the index from one set of stems
 	 * @author JRRed
-	 *
 	 */
 	private class OneStemSetSearchTask {
-		
-		/** Lookup map, to make sure we create a given search result only onc e*/
+		/** Lookup map, to make sure we create a given search result only once */
 		Map<String, InvertedIndex.SearchResult> lookup;
 		
 		/** List of search results. @note This is a list, not a treeset, b/c SearchResults are mutable. Any search func will sort this list at the end */
@@ -141,11 +138,12 @@ public class IndexSearcher {
 		 */
 		private void partialSearch() {
 			Map<String, Integer> partialStemFreqMap = createPartialStemFreqMap();
+			
 			updateMatches(partialStemFreqMap.keySet(),
 					(pathName, query) -> lookup.get(pathName).update(query, partialStemFreqMap.get(query)));
+			
 			Collections.sort(results);
 			searchResultMap.put( String.join(" ",  stemSet), results );
-			
 		}
 		
 		/**
@@ -156,12 +154,14 @@ public class IndexSearcher {
 		private void updateMatches(Collection<String> querySet, BiConsumer<String, String> updateFunc) {
 			for (String query : querySet) {
 				if ( index.contains(query) ) {
+					
 					for (String pathName : index.getLocationsContaining(query)) {
 						if (!lookup.containsKey(pathName)) {
 							InvertedIndex.SearchResult result = index.new SearchResult(pathName);
 							lookup.put(pathName, result);
 							results.add(result);
 						}
+						
 						updateFunc.accept(pathName,  query);
 					}
 				}

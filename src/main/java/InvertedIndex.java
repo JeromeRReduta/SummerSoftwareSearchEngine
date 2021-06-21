@@ -14,7 +14,6 @@ import java.util.TreeSet;
  *
  */
 public class InvertedIndex {
-	
 	/**
 	 * Index data structure - "innermap" is TreeMap: String to (TreeSet: Integer)
 	 */
@@ -26,8 +25,8 @@ public class InvertedIndex {
 	/**
 	 * Constructor
 	 * @note Shouldn't make a builder here, b/c the point isn't to create
-	a new thing with many complex things, but to populate an already existing
-	thing with data
+	 * a new thing with many complex things, but to populate an already existing
+	 * thing with data
 	 */
 	public InvertedIndex() {
 		map = new TreeMap<>();
@@ -149,7 +148,7 @@ public class InvertedIndex {
 	 * @param str string
 	 * @return The number of locations containing a given string. If there's no mapping, returns 0.
 	 */
-	public int numOfLocationsContainingStrings(String str) {
+	public int numOfLocationsContainingString(String str) {
 		return contains(str) ? map.get(str).size() : 0;
 	}
 	
@@ -201,15 +200,10 @@ public class InvertedIndex {
 	public void stringCountsToJson(Path path) throws IOException {
 		SimpleJsonWriter.asObject(stringCount, path);
 	}
-	
 
 	/**
 	 * Class whose sole responsibility is to hold data gained from searching the index
 	 * @author JRRed
-	 * @note All vars here are public and final. This is because 
-	 * the sole purpose of this class is to hold data that other blocks of code will want to see, and once these vars are set
-	 * we will never have to change them again (if we want a new result, we'll just search again, getting a new SearchResult)
-	 *
 	 */
 	public class SearchResult implements Comparable<SearchResult> {
 		
@@ -293,6 +287,5 @@ public class InvertedIndex {
 					level + 1));
 			SimpleJsonWriter.indent("}", writer, level);
 		}
-		
 	}
 }
