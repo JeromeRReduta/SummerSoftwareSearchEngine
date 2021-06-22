@@ -51,10 +51,10 @@ public class Driver {
 			}
 			catch (NullPointerException e) {
 				System.err.printf("Error: query path is missing or invalid: %s%n", query);
-				e.printStackTrace();
+				e.printStackTrace(); // TODO Remove
 			}
 			catch (Exception e) {
-				System.out.println(e);
+				System.out.println(e); // TODO Remove
 				System.err.printf("Error: Could not search inverted index with path: %s%n", query);
 			}
 		}

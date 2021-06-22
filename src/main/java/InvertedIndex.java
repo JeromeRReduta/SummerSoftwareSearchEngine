@@ -2,6 +2,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -200,6 +201,35 @@ public class InvertedIndex {
 	public void stringCountsToJson(Path path) throws IOException {
 		SimpleJsonWriter.asObject(stringCount, path);
 	}
+	
+	/* TODO 
+	
+	public List<SearchResult> exactSearch(Set<String> queries) {
+		List<InvertedIndex.SearchResult> results;
+		Map<String, InvertedIndex.SearchResult> lookup;
+		
+		same logic as updateMatches except access the private data directly
+		
+		Collections.sort(results);
+		return results;
+	}
+	
+	public List<SearchResult> partialSearch(Set<String> queries) {
+		List<InvertedIndex.SearchResult> results;
+		Map<String, InvertedIndex.SearchResult> lookup;
+		
+		for each query
+			for key in the tailMap of map
+				if startswith
+					update the results
+					same logic as updateMatches except access the private data directly
+				else
+					break
+		
+		Collections.sort(results);
+		return results;
+	}
+	*/
 
 	/**
 	 * Class whose sole responsibility is to hold data gained from searching the index
@@ -220,7 +250,7 @@ public class InvertedIndex {
 		 * Constructor
 		 * @param location location of stem
 		 */
-		public SearchResult(String location) {
+		public SearchResult(String location) { // TODO private
 			this.location = location;
 			this.count = 0;
 			this.score = 0;
@@ -230,7 +260,7 @@ public class InvertedIndex {
 		 * Updates a search result based on a given query
 		 * @param query query
 		 */
-		public void update(String query) {
+		public void update(String query) { // TODO private
 			update(query, 1);
 		}
 		
@@ -240,7 +270,7 @@ public class InvertedIndex {
 		 * @param query query
 		 * @param multiplier multiplier
 		 */
-		public void update(String query, int multiplier) {
+		public void update(String query, int multiplier) { // TODO private
 			count += numOfTimesStringAppearsInLocation(query,  location) * multiplier;
 			score = (double)count/stringCount.get(location);
 		}
