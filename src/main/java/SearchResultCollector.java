@@ -24,7 +24,7 @@ public class SearchResultCollector {
 	private final InvertedIndex index;
 	
 	/** Search function to use */
-	private Function<Set<String>, Collection<InvertedIndex.SearchResult>> searchFunc; 
+	private Function<Set<String>, Collection<InvertedIndex.SearchResult>> searchFunc; // TODO final 
 	
 	/**
 	 * Constructor

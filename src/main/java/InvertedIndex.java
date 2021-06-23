@@ -12,6 +12,13 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.function.BiConsumer;
 
+/*
+ * TODO Rethink naming strategy 
+ * 
+ * Either "contains" or "containWord" but not both approaches
+ * Try to go for slightly more concise of names
+ */
+
 /**
  * Class whose sole responsibility is to store data in an InvertedIndex format
  * InvertedIndex is a String to (Map: String to (TreeSet: Integer)) pair
@@ -193,7 +200,7 @@ public class InvertedIndex {
 	 * Creates a JSON version of the string count map, as a string
 	 * @return A JSON version of the string count map, as a string
 	 */
-	public String stringCountsToJson() {
+	public String stringCountsToJson() { // TODO countsToJson
 		return SimpleJsonWriter.asObject(stringCount);
 	}
 	
@@ -202,7 +209,7 @@ public class InvertedIndex {
 	 * @param path file path
 	 * @throws IOException In case IO Error occurs
 	 */
-	public void stringCountsToJson(Path path) throws IOException {
+	public void stringCountsToJson(Path path) throws IOException { // TODO countsToJson
 		SimpleJsonWriter.asObject(stringCount, path);
 	}
 	
@@ -211,7 +218,7 @@ public class InvertedIndex {
 	 * @param stems stems
 	 * @return Search results from exact search
 	 */
-	public Collection<SearchResult> exactSearch(Set<String> stems) {
+	public Collection<SearchResult> exactSearch(Set<String> stems) { // TODO List from Collection
 		return new IndexSearcher(stems).exactSearch().results();
 	}
 	
@@ -220,9 +227,84 @@ public class InvertedIndex {
 	 * @param stems stems
 	 * @return Search results from partial search
 	 */
-	public Collection<SearchResult> partialSearch(Set<String> stems) {
+	public Collection<SearchResult> partialSearch(Set<String> stems) { // TODO List from Collection
 		return new IndexSearcher(stems).partialSearch().results();
 	}
+	
+	/*
+	 * TODO Could reduce # of lines of code (easier to maintain) if didn't have
+	 * the inner class.
+	 * 
+
+public Collection<SearchResult> exactSearch(Set<String> stems) {
+
+}
+
+public Collection<SearchResult> partialSearch(Set<String> stems) {
+	Map<String, SearchResult> lookup = ...;
+	List<SearchResult> results = ...;
+	
+	for (String query : querySet) {
+		for (String key : map.tailMap(query).keySet() ) {
+		
+			if (!key.startsWith(query)) { return; }
+
+			Set<String> locations = map.get(query).keySet();
+
+			for (String pathName : locations) {
+				if (!lookup.containsKey(pathName)) {
+					SearchResult result = new SearchResult(pathName);
+					lookup.put(pathName, result);
+					results.add(result);
+				}
+
+				lookup.get(pathName).update(key);
+			}
+		}
+	}
+	
+	Collections.sort(results);
+	return results;
+}
+
+---one option---
+
+public Collection<SearchResult> search(Set<String> stems, boolean exact) {
+	Map<String, SearchResult> lookup = ...;
+	List<SearchResult> results = ...;
+	
+	for (String query : querySet) {
+		call exact -or- partial
+	}
+	
+	Collections.sort(results);
+	return results;
+}
+
+---another option---
+
+public Collection<SearchResult> partialSearch(Set<String> stems) {
+	Map<String, SearchResult> lookup = ...;
+	List<SearchResult> results = ...;
+	
+	for (String query : querySet) {
+		for (String key : map.tailMap(query).keySet() ) {
+		
+			if (!key.startsWith(query)) { return; }
+
+			searchHelper(...);
+		}
+	}
+	
+	Collections.sort(results);
+	return results;
+}
+
+---another option---
+
+try to combine the two above <---- starts to get tricky and hard to follow
+
+	 */
 	
 	/**
 	 * Class whose sole responsibility is to provide search functionality to its enclosing inverted index. 
@@ -354,6 +436,13 @@ public class InvertedIndex {
 			this.count = 0;
 			this.score = 0;
 		}
+		
+		/* TODO 
+		private void update(String match) {
+			this.count  += map.get(match).get(location).size();
+			this.score = (double) this.count / stringCount.get(location);
+		}
+		*/
 
 		@Override
 		public int compareTo(InvertedIndex.SearchResult other) {
