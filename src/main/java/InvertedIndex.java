@@ -298,7 +298,7 @@ public class InvertedIndex {
 		
 		/**
 		 * Sorts and returns the searcher's results. After this, the IndexSearcher should not longer be used.
-		 * @return
+		 * @return The searcher's results, sorted.
 		 */
 		private List<SearchResult> results() {
 			Collections.sort(results);
