@@ -267,6 +267,43 @@ public Collection<SearchResult> partialSearch(Set<String> stems) {
 	return results;
 }
 
+---one option---
+
+public Collection<SearchResult> search(Set<String> stems, boolean exact) {
+	Map<String, SearchResult> lookup = ...;
+	List<SearchResult> results = ...;
+	
+	for (String query : querySet) {
+		call exact -or- partial
+	}
+	
+	Collections.sort(results);
+	return results;
+}
+
+---another option---
+
+public Collection<SearchResult> partialSearch(Set<String> stems) {
+	Map<String, SearchResult> lookup = ...;
+	List<SearchResult> results = ...;
+	
+	for (String query : querySet) {
+		for (String key : map.tailMap(query).keySet() ) {
+		
+			if (!key.startsWith(query)) { return; }
+
+			searchHelper(...);
+		}
+	}
+	
+	Collections.sort(results);
+	return results;
+}
+
+---another option---
+
+try to combine the two above <---- starts to get tricky and hard to follow
+
 	 */
 	
 	/**
