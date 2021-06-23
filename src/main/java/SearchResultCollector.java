@@ -73,5 +73,4 @@ public class SearchResultCollector {
 	public void outputToFile(final Path path) throws IOException {
 		SearchJsonWriter.asSearchResultMap(searchResultMap, path);
 	}
-	
 }
