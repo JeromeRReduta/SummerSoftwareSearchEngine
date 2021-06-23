@@ -71,7 +71,7 @@ public class WordStemCollector {
 	 * @param filePath path of one file
 	 * @throws IOException In case of IO error
 	 */
-	private void parseFile(Path filePath) throws IOException {
+	private void parseFile(Path filePath) throws IOException { // TODO public
 		parseFile(filePath, this.index);
 	}
 }
