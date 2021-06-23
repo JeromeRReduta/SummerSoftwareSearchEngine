@@ -3,7 +3,7 @@ import java.nio.file.Path;
 
 /**
  * Class whose sole responsibility is to represent a search engine, with an InvertedIndex for storing data, a WordStemCollector for populating that index,
- * and an IndexSearcher for searching that index.
+ * and an SearchResultCollector for searching that index.
  * @author JRRed
  *
  */
@@ -15,8 +15,8 @@ public class SearchEngine {
 	/** WordStemCollector for collecting stems and storing them into the index */
 	private final WordStemCollector stemCollector;
 	
-	/** IndexSearcher to search index with */
-	private final IndexSearcher searcher;
+	/** SearchResultCollector to search index with */
+	private final SearchResultCollector searcher;
 	
 	/**
 	 * Constructor
@@ -26,7 +26,7 @@ public class SearchEngine {
 	public SearchEngine(ArgumentMap argMap) {
 		this.index = new InvertedIndex();
 		this.stemCollector = new WordStemCollector( this.index );
-		this.searcher = new IndexSearcher( index, argMap.hasFlag("-exact") );
+		this.searcher = new SearchResultCollector( index, argMap.hasFlag("-exact") );
 	}
 	
 	/**

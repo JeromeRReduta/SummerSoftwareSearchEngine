@@ -1,12 +1,16 @@
 import java.io.IOException;
 import java.io.Writer;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.function.BiConsumer;
 
 /**
  * Class whose sole responsibility is to store data in an InvertedIndex format
@@ -202,34 +206,129 @@ public class InvertedIndex {
 		SimpleJsonWriter.asObject(stringCount, path);
 	}
 	
-	/* TODO 
-	
-	public List<SearchResult> exactSearch(Set<String> queries) {
-		List<InvertedIndex.SearchResult> results;
-		Map<String, InvertedIndex.SearchResult> lookup;
-		
-		same logic as updateMatches except access the private data directly
-		
-		Collections.sort(results);
-		return results;
+	/**
+	 * Searches the set of stems with exact search, and returns the results
+	 * @param stems stems
+	 * @return Search results from exact search
+	 */
+	public Collection<SearchResult> exactSearch(Set<String> stems) {
+		return new IndexSearcher(stems).exactSearch().results();
 	}
 	
-	public List<SearchResult> partialSearch(Set<String> queries) {
-		List<InvertedIndex.SearchResult> results;
-		Map<String, InvertedIndex.SearchResult> lookup;
-		
-		for each query
-			for key in the tailMap of map
-				if startswith
-					update the results
-					same logic as updateMatches except access the private data directly
-				else
-					break
-		
-		Collections.sort(results);
-		return results;
+	/**
+	 * Searches the set of stems with partial search, and returns the results
+	 * @param stems stems
+	 * @return Search results from partial search
+	 */
+	public Collection<SearchResult> partialSearch(Set<String> stems) {
+		return new IndexSearcher(stems).partialSearch().results();
 	}
-	*/
+	
+	/**
+	 * Class whose sole responsibility is to provide search functionality to its enclosing inverted index. 
+	 * @author JRRed
+	 */
+	private class IndexSearcher {
+
+		/** List of Search Results from calling the searcher's search function */
+		List<SearchResult> results;
+		
+		/** Lookup map, to make sure the searcher only creates one search result per unique string */
+		Map<String, SearchResult> lookup;
+		
+		/** Collection of stems to search */
+		Collection<String> stems;
+		
+		/**
+		 * Constructor
+		 * @param stems stems to search
+		 */
+		public IndexSearcher(Collection<String> stems) {
+			this.results = new ArrayList<>();
+			this.lookup = new HashMap<>();
+			this.stems = stems;
+		}
+
+		/**
+		 * Updates this searcher's results using an exact search algorithm
+		 * @return the searcher, for method chaining
+		 */
+		private IndexSearcher exactSearch() {
+			updateMatches(stems, (pathName, query) -> {
+				SearchResult result = lookup.get(pathName);
+				result.count  += numOfTimesStringAppearsInLocation(query,  pathName);
+				result.score = (double)result.count / stringCount.get(pathName);
+			});
+			return this;
+		}
+		
+		/**
+		 * Updates this searcher's results using a partial search algorithm
+		 * @return the searcher, for method chaining
+		 * 
+		 * @note This partial search algorithm specifies that common partial stems are counted multiple times. For example, if
+		 * the partial stems would be ("your", "yourselv", "yourself", "yourselv"), then "yourselv" and "yourself" are each counted twice.
+		 */
+		private IndexSearcher partialSearch() {
+			Map<String, Integer> partialStemFreqMap = createPartialStemFreqMap();
+			updateMatches(partialStemFreqMap.keySet(), (pathName, query) -> {
+				SearchResult result = lookup.get(pathName);
+				result.count  += numOfTimesStringAppearsInLocation(query,  pathName) * partialStemFreqMap.get(query);
+				result.score = (double)result.count / stringCount.get(pathName);
+			});
+			return this;
+		}
+		
+		/**
+		 * Creates a map storing how often a partial stem should be counted in the index.
+		 * @return A partial stem frequency map
+		 */
+		private Map<String, Integer> createPartialStemFreqMap() {
+			Map<String, Integer> partialStemFreqMap = new TreeMap<>();
+			for (String stem : stems) {
+				var it = map.tailMap(stem).keySet().iterator();
+				
+				String current;
+				while ( it.hasNext() && (current = it.next()).startsWith(stem) ) {
+					partialStemFreqMap.compute(current,  (k, v) -> v == null ? 1 : v + 1); // Got this implementation from https://www.baeldung.com/java-word-frequency
+				}
+			}
+			return partialStemFreqMap;
+		}
+		
+		/**
+		 * Sorts and returns the searcher's results. After this, the IndexSearcher should not longer be used.
+		 * @return
+		 */
+		private List<SearchResult> results() {
+			Collections.sort(results);
+			return results;
+		}
+		
+		/**
+		 * Updates this class's collection of search results based off the query set and update function
+		 * @param querySet set of queries (exact queries or partial queries)
+		 * @param updateFunc the function to update this class's collection of search results with
+		 */
+		private void updateMatches(Collection<String> querySet, BiConsumer<String, String> updateFunc) {
+			for (String query : querySet) {
+				if ( contains(query) ) {
+					
+					Set<String> locations = map.get(query).keySet();
+					
+					for (String pathName : locations) {
+						if (!lookup.containsKey(pathName)) {
+							SearchResult result = new SearchResult(pathName);
+							lookup.put(pathName, result);
+							results.add(result);
+						}
+						
+						updateFunc.accept(pathName,  query);
+					}
+				}
+			}
+		}
+	}
 
 	/**
 	 * Class whose sole responsibility is to hold data gained from searching the index
@@ -250,29 +349,10 @@ public class InvertedIndex {
 		 * Constructor
 		 * @param location location of stem
 		 */
-		public SearchResult(String location) { // TODO private
+		private SearchResult(String location) {
 			this.location = location;
 			this.count = 0;
 			this.score = 0;
-		}
-		
-		/**
-		 * Updates a search result based on a given query
-		 * @param query query
-		 */
-		public void update(String query) { // TODO private
-			update(query, 1);
-		}
-		
-		/**
-		 * Updates a search result based on a given query, multiplied by the multiplier. This is generally used for partial stem search,
-		 * which double-counts shared partial stems
-		 * @param query query
-		 * @param multiplier multiplier
-		 */
-		public void update(String query, int multiplier) { // TODO private
-			count += numOfTimesStringAppearsInLocation(query,  location) * multiplier;
-			score = (double)count/stringCount.get(location);
 		}
 
 		@Override
