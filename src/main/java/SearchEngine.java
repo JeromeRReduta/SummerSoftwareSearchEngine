@@ -62,7 +62,7 @@ public class SearchEngine {
 	 * @throws IOException in case of IO Error
 	 */
 	public void outputWordCountsTo(Path path) throws IOException {
-		index.stringCountsToJson(path);
+		index.countsToJson(path);
 	}
 	
 	/**

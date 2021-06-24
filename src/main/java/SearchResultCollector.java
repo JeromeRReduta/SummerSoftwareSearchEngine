@@ -24,7 +24,7 @@ public class SearchResultCollector {
 	private final InvertedIndex index;
 	
 	/** Search function to use */
-	private Function<Set<String>, Collection<InvertedIndex.SearchResult>> searchFunc; // TODO final 
+	private final Function<Set<String>, Collection<InvertedIndex.SearchResult>> searchFunc;
 	
 	/**
 	 * Constructor
@@ -45,7 +45,6 @@ public class SearchResultCollector {
 	public void search(final Path queryPath) throws IOException {
 		try (BufferedReader reader = Files.newBufferedReader(queryPath, StandardCharsets.UTF_8)) {
 			String line;
-			
 			while ( (line = reader.readLine()) != null ) {
 				searchIfNecessary(line);
 			}
