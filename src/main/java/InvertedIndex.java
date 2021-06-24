@@ -12,12 +12,6 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.function.BiConsumer;
 
-/*
- * TODO Rethink naming strategy 
- * 
- * Either "contains" or "containWord" but not both approaches
- * Try to go for slightly more concise of names
- */
 
 /**
  * Class whose sole responsibility is to store data in an InvertedIndex format
@@ -200,7 +194,7 @@ public class InvertedIndex {
 	 * Creates a JSON version of the string count map, as a string
 	 * @return A JSON version of the string count map, as a string
 	 */
-	public String stringCountsToJson() { // TODO countsToJson
+	public String stringCountsToJson() {
 		return SimpleJsonWriter.asObject(stringCount);
 	}
 	
@@ -209,8 +203,66 @@ public class InvertedIndex {
 	 * @param path file path
 	 * @throws IOException In case IO Error occurs
 	 */
-	public void stringCountsToJson(Path path) throws IOException { // TODO countsToJson
+	public void stringCountsToJson(Path path) throws IOException {
 		SimpleJsonWriter.asObject(stringCount, path);
+	}
+	
+	// Note for next time: Make this one or two funcs
+	/**
+	 * Attempts to merge the contents of another inverted index to this index
+	 * @param other other inverted index
+	 */
+	public void attemptMergeWith(InvertedIndex other) {
+		
+		if (this.equals(other)) return; // check that we're not trying to merge index with itself
+		
+		mergeMapWith(other);
+		other.stringCount.forEach((key, value) -> stringCount.merge(key, value, Math::max));
+		
+	}
+	
+	/**
+	 * Merges map of another InvertedIndex with this one's
+	 * @param other other InvertedIndex
+	 */
+	private void mergeMapWith(InvertedIndex other) {
+		
+		Set<String> otherKeys = other.map.keySet();
+
+		for (String otherKey : otherKeys) {
+			if (map.containsKey(otherKey)) {
+				mergePositions(other, otherKey);
+			}
+			else {
+				map.put(otherKey, other.map.get(otherKey));
+			}
+		}
+		
+	}
+	
+	/**
+	 * Merges positions of this index's map and other index's map
+	 * @param other other index
+	 * @param otherKey key in other index's keyset
+	 */
+	private void mergePositions(InvertedIndex other, String otherKey) {
+		
+		TreeMap<String, TreeSet<Integer>> innerMap = map.get(otherKey);
+		TreeMap<String, TreeSet<Integer>> otherInnerMap = other.map.get(otherKey);
+		Set<String> otherPaths = otherInnerMap.keySet();
+		
+		for (String otherPath : otherPaths) {
+			TreeSet<Integer> positions = innerMap.get(otherPath);
+			TreeSet<Integer> otherPositions = otherInnerMap.get(otherPath);
+			
+			if (innerMap.containsKey(otherPath)) {
+				positions.addAll(otherPositions);
+			}
+			else {
+				innerMap.put(otherPath,  otherPositions);
+			}
+		}
+		
 	}
 	
 	/**
@@ -218,7 +270,7 @@ public class InvertedIndex {
 	 * @param stems stems
 	 * @return Search results from exact search
 	 */
-	public Collection<SearchResult> exactSearch(Set<String> stems) { // TODO List from Collection
+	public Collection<SearchResult> exactSearch(Set<String> stems) {
 		return new IndexSearcher(stems).exactSearch().results();
 	}
 	
@@ -227,13 +279,11 @@ public class InvertedIndex {
 	 * @param stems stems
 	 * @return Search results from partial search
 	 */
-	public Collection<SearchResult> partialSearch(Set<String> stems) { // TODO List from Collection
+	public Collection<SearchResult> partialSearch(Set<String> stems) {
 		return new IndexSearcher(stems).partialSearch().results();
 	}
 	
 	/*
-	 * TODO Could reduce # of lines of code (easier to maintain) if didn't have
-	 * the inner class.
 	 * 
 
 public Collection<SearchResult> exactSearch(Set<String> stems) {
@@ -437,7 +487,7 @@ try to combine the two above <---- starts to get tricky and hard to follow
 			this.score = 0;
 		}
 		
-		/* TODO 
+		/* 
 		private void update(String match) {
 			this.count  += map.get(match).get(location).size();
 			this.score = (double) this.count / stringCount.get(location);

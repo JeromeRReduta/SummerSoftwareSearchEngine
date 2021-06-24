@@ -24,9 +24,25 @@ public class SearchEngine {
 	 * @note Putting argMap here and not just the exact boolean for future-proofing for P3 and P4, when I will also have to deal with threads and crawling maybe
 	 */
 	public SearchEngine(ArgumentMap argMap) {
-		this.index = new InvertedIndex();
-		this.stemCollector = new WordStemCollector( this.index );
-		this.searcher = new SearchResultCollector( index, argMap.hasFlag("-exact") );
+		if (argMap.hasFlag("-threads")) {
+			
+			WorkQueue queue = new WorkQueue( argMap.getInteger("-threads", WorkQueue.DEFAULT) );
+			this.index = new ThreadSafeInvertedIndex();
+			assert this.index instanceof ThreadSafeInvertedIndex;
+			
+			ThreadSafeInvertedIndex threadSafe = (ThreadSafeInvertedIndex)this.index;
+			
+			this.stemCollector = new MultiThreadedStemCollector(threadSafe, queue);
+			this.searcher = new MultiThreadedSearchCollector(threadSafe, argMap.hasFlag("-exact"), queue);
+			
+		}
+		else {
+			this.index = new InvertedIndex();
+			this.stemCollector = new SingleThreadedStemCollector( this.index );
+			this.searcher = new SingleThreadedSearchCollector( index, argMap.hasFlag("-exact") );
+		}
+		
+
 	}
 	
 	/**
