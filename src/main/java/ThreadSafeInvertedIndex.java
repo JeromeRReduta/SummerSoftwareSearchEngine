@@ -15,8 +15,6 @@ public class ThreadSafeInvertedIndex extends InvertedIndex {
 	/** lock used for synchronization */
 	private final SimpleReadWriteLock lock = new SimpleReadWriteLock();
 	
-	// TODO: Override ALL public methods below w/ synchronized version
-	
 	@Override
 	public void add(String str, String location, int position) {
 		lock.writeLock().lock();
