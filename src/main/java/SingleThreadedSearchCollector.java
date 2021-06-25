@@ -10,8 +10,6 @@ import java.nio.file.Path;
  *
  */
 public class SingleThreadedSearchCollector extends SearchResultCollector {
-
-	
 	/**
 	 * Constructor
 	 * @param index index to search from

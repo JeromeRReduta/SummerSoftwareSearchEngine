@@ -9,7 +9,6 @@ import java.util.List;
  *
  */
 public class SingleThreadedStemCollector extends WordStemCollector {
-
 	/**
 	 * Constructor
 	 * @param index InvertedIndex this collector will save its stems to
@@ -31,5 +30,4 @@ public class SingleThreadedStemCollector extends WordStemCollector {
 			new ParseFileTask(seed).run();
 		}
 	}
-
 }

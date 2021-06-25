@@ -8,7 +8,6 @@ import java.nio.file.Path;
  *
  */
 public class SearchEngine {
-	
 	/** Inverted index for storing data */
 	private final InvertedIndex index;
 	
@@ -25,7 +24,6 @@ public class SearchEngine {
 	 */
 	public SearchEngine(ArgumentMap argMap) {
 		if (argMap.hasFlag("-threads")) {
-			
 			WorkQueue queue = new WorkQueue( argMap.getInteger("-threads", WorkQueue.DEFAULT) );
 			this.index = new ThreadSafeInvertedIndex();
 			assert this.index instanceof ThreadSafeInvertedIndex;
@@ -34,15 +32,12 @@ public class SearchEngine {
 			
 			this.stemCollector = new MultiThreadedStemCollector(threadSafe, queue);
 			this.searcher = new MultiThreadedSearchCollector(threadSafe, argMap.hasFlag("-exact"), queue);
-			
 		}
 		else {
 			this.index = new InvertedIndex();
 			this.stemCollector = new SingleThreadedStemCollector( this.index );
 			this.searcher = new SingleThreadedSearchCollector( index, argMap.hasFlag("-exact") );
 		}
-		
-
 	}
 	
 	/**

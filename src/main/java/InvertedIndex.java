@@ -283,12 +283,6 @@ public class InvertedIndex {
 	 * "yourselv" and "yourself" are each counted twice
 	 */
 
-public Collection<SearchResult> partialSearch(Set<String> stems) {
-	Map<String, SearchResult> lookup = ...;
-	List<SearchResult> results = ...;
-	
-	for (String query : querySet) {
-		for (String key : map.tailMap(query).keySet() ) {
 	public List<SearchResult> partialSearch(Set<String> stems) {
 		List<SearchResult> results = new ArrayList<>();
 		Map<String, SearchResult> lookup = new HashMap<>();

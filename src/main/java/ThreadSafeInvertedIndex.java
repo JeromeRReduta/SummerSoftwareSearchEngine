@@ -1,6 +1,6 @@
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -27,40 +27,33 @@ public class ThreadSafeInvertedIndex extends InvertedIndex {
 	}
 	
 	@Override
-	public Set<String> getStrings() {
-		return lock.synchronizeWithSupplier(super::getStrings, false);
-	}
-	
-	/**
-	 * Returns an unmodifiable view of the strings in the index, starting with a given string (or if that string isn't in the map,
-	 * starting with the first string in the map after the given string)
-	 * @param start string
-	 * @return An unmodifiable view of the index. If the string exists in the map, this set will start with that given string. Otherwise,
-	 * this set will start with the first string in the map that comes after the given string.
-	 */
-	@Override
-	public Set<String> getStringsStartingWith(String start) {
-		return lock.synchronizeWithFunction(super::getStringsStartingWith, start, false);
+	public Set<String> get() {
+		return lock.synchronizeWithSupplier(super::get, false);
 	}
 	
 	@Override
-	public Set<String> getLocationsContaining(String str) {
-		return lock.synchronizeWithFunction(super::getLocationsContaining, str, false);
+	public Set<String> get(String str) {
+		return lock.synchronizeWithFunction(super::get, str, false);
 	}
 	
 	@Override
-	public Set<Integer> getPositionsOfStringInLocation(String str, String location) {
-		return lock.synchronizeWithBiFunction(super::getPositionsOfStringInLocation, str, location, false);
+	public Set<Integer> get(String str, String location) {
+		return lock.synchronizeWithBiFunction(super::get, str, location, false);
 	}
 	
 	@Override
-	public Map<String, Integer> getStringCount() {
-		return lock.synchronizeWithSupplier(super::getStringCount, false);
+	public Map<String, Integer> getCounts() {
+		return lock.synchronizeWithSupplier(super::getCounts, false);
+	}
+	
+	@Override
+	public int countsSize() {
+		return lock.synchronizeWithSupplier(super::countsSize, false);
 	}
 
 	@Override
-	public int numOfTimesStringAppearsInLocation(String location) {
-		return lock.synchronizeWithFunction(super::numOfTimesStringAppearsInLocation, location, false);
+	public int countsSize(String location) {
+		return lock.synchronizeWithFunction(super::countsSize, location, false);
 	}
 	
 	@Override
@@ -86,18 +79,18 @@ public class ThreadSafeInvertedIndex extends InvertedIndex {
 	}
 	
 	@Override
-	public int numOfStrings() {
-		return lock.synchronizeWithSupplier(super::numOfStrings, false);
+	public int size() {
+		return lock.synchronizeWithSupplier(super::size, false);
 	}
 
 	@Override
-	public int numOfLocationsContainingString(String str) {
-		return lock.synchronizeWithFunction(super::numOfLocationsContainingString, str, false);
+	public int size(String str) {
+		return lock.synchronizeWithFunction(super::size, str, false);
 	}
 	
 	@Override
-	public int numOfTimesStringAppearsInLocation(String str, String location) {
-		return lock.synchronizeWithBiFunction(super::numOfTimesStringAppearsInLocation, str, location, false);
+	public int size(String str, String location) {
+		return lock.synchronizeWithBiFunction(super::size, str, location, false);
 	}
 	
 	@Override
@@ -123,15 +116,15 @@ public class ThreadSafeInvertedIndex extends InvertedIndex {
 	}
 	
 	@Override
-	public String stringCountsToJson() {
-		return lock.synchronizeWithSupplier(super::stringCountsToJson, false);
+	public String countsToJson() {
+		return lock.synchronizeWithSupplier(super::countsToJson, false);
 	}
 	
 	@Override
-	public void stringCountsToJson(Path path) throws IOException {
+	public void countsToJson(Path path) throws IOException {
 		lock.readLock().lock();
 		try {
-			super.stringCountsToJson(path);
+			super.countsToJson(path);
 		}
 		finally {
 			lock.readLock().unlock();
@@ -139,12 +132,12 @@ public class ThreadSafeInvertedIndex extends InvertedIndex {
 	}
 	
 	@Override
-	public Collection<SearchResult> exactSearch(Set<String> stems) {
+	public List<SearchResult> exactSearch(Set<String> stems) {
 		return lock.synchronizeWithFunction(super::exactSearch, stems, false);
 	}
 	
 	@Override
-	public Collection<SearchResult> partialSearch(Set<String> stems) {
+	public List<SearchResult> partialSearch(Set<String> stems) {
 		return lock.synchronizeWithFunction(super::partialSearch, stems, false);
 	}
 	

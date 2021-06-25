@@ -37,6 +37,4 @@ public class MultiThreadedStemCollector extends WordStemCollector {
 		
 		queue.finish();
 	}
-	
-	
 }
