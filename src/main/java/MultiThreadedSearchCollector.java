@@ -10,15 +10,14 @@ import java.nio.file.Path;
  *
  */
 public class MultiThreadedSearchCollector extends SearchResultCollector {
-	
 	/** work queue */
 	private final WorkQueue queue;
 	
 	/**
 	 * Constructor
-	 * @param threadSafe
-	 * @param exact
-	 * @param queue
+	 * @param threadSafe thread-safe inverted index
+	 * @param exact whether to use exact or partial search
+	 * @param queue work queue
 	 */
 	public MultiThreadedSearchCollector(ThreadSafeInvertedIndex threadSafe, boolean exact, WorkQueue queue) {
 		super(threadSafe, exact);
@@ -41,6 +40,4 @@ public class MultiThreadedSearchCollector extends SearchResultCollector {
 			queue.finish();
 		}
 	}
-	
-
 }
