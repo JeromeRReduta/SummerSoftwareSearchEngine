@@ -201,6 +201,62 @@ public class InvertedIndex {
 		SimpleJsonWriter.asObject(stringCount, path);
 	}
 	
+	// Note for next time: Make this one or two funcs
+	/**
+	 * Attempts to merge the contents of another inverted index to this index
+	 * @param other other inverted index
+	 */
+	public void attemptMergeWith(InvertedIndex other) {
+		if (this.equals(other)) return; // check that we're not trying to merge index with itself
+		
+		mergeMapWith(other);
+		other.stringCount.forEach((key, value) -> stringCount.merge(key, value, Math::max));
+	}
+	
+	/**
+	 * Merges map of another InvertedIndex with this one's
+	 * @param other other InvertedIndex
+	 */
+	private void mergeMapWith(InvertedIndex other) {
+		
+		Set<String> otherKeys = other.map.keySet();
+
+		for (String otherKey : otherKeys) {
+			if (map.containsKey(otherKey)) {
+				mergePositions(other, otherKey);
+			}
+			else {
+				map.put(otherKey, other.map.get(otherKey));
+			}
+		}
+		
+	}
+	
+	/**
+	 * Merges positions of this index's map and other index's map
+	 * @param other other index
+	 * @param otherKey key in other index's keyset
+	 */
+	private void mergePositions(InvertedIndex other, String otherKey) {
+		
+		TreeMap<String, TreeSet<Integer>> innerMap = map.get(otherKey);
+		TreeMap<String, TreeSet<Integer>> otherInnerMap = other.map.get(otherKey);
+		Set<String> otherPaths = otherInnerMap.keySet();
+		
+		for (String otherPath : otherPaths) {
+			TreeSet<Integer> positions = innerMap.get(otherPath);
+			TreeSet<Integer> otherPositions = otherInnerMap.get(otherPath);
+			
+			if (innerMap.containsKey(otherPath)) {
+				positions.addAll(otherPositions);
+			}
+			else {
+				innerMap.put(otherPath,  otherPositions);
+			}
+		}
+		
+	}
+	
 	/**
 	 * Searches the index for each given stem and returns its results
 	 * @param stems stems
@@ -226,6 +282,13 @@ public class InvertedIndex {
 	 * twice. E.g. if the partial stems would be ("yourselv", "yourself", "your", "yourself", "yourselv"), then
 	 * "yourselv" and "yourself" are each counted twice
 	 */
+
+public Collection<SearchResult> partialSearch(Set<String> stems) {
+	Map<String, SearchResult> lookup = ...;
+	List<SearchResult> results = ...;
+	
+	for (String query : querySet) {
+		for (String key : map.tailMap(query).keySet() ) {
 	public List<SearchResult> partialSearch(Set<String> stems) {
 		List<SearchResult> results = new ArrayList<>();
 		Map<String, SearchResult> lookup = new HashMap<>();

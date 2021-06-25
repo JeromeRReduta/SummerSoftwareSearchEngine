@@ -13,7 +13,7 @@ import java.time.Instant;
  */
 public class Driver {
 
-	// Note: THIS IS PROJECT 2 BRANCH - SWITCH TO MAIN ONE ONCE DESIGN PASSES
+	// Note: THIS IS PROJECT 3 BRANCH - SWITCH TO MAIN ONE ONCE DESIGN PASSES
 	/**
 	 * Initializes the classes necessary based on the provided command-line
 	 * arguments. This includes (but is not limited to) how to build or search an

@@ -3,23 +3,22 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 
-import opennlp.tools.stemmer.Stemmer;
 import opennlp.tools.stemmer.snowball.SnowballStemmer;
 
 /**
- * Class whose sole responsibility is to parse text files for word stems and store them in an inverted index
+ * Class whose sole responsibility is to collect word stems from a file and put them into an inverted index
  * @author JRRed
  *
  */
-public class WordStemCollector {
-	/** InvertedIndex this collector will store its data to */
+public abstract class WordStemCollector {
+	
+	/** InvertedIndex to store word stems into */
 	private final InvertedIndex index;
 	
 	/**
 	 * Constructor
-	 * @param index InvertedIndex this collector will save its stems to
+	 * @param index inverted index
 	 */
 	public WordStemCollector(InvertedIndex index) {
 		this.index = index;
@@ -30,48 +29,54 @@ public class WordStemCollector {
 	 * @param seed file or directory path
 	 * @throws IOException in case of IO Error
 	 */
-	public void collectStemsFrom(Path seed) throws IOException {
-		if (Files.isDirectory(seed)) { // Case: Directory - call parseFile() for each text file in directory
-			List<Path> filePaths = TextFileFinder.list(seed);
-			
-			for (Path filePath : filePaths) { // Case: one file - call parseFile() just for this file
-				parseFile(filePath);
-			}
-		}
-		else if (Files.isRegularFile(seed, java.nio.file.LinkOption.NOFOLLOW_LINKS)) {
-			parseFile(seed);
-		}
-	}
+	public abstract void collectStemsFrom(Path seed) throws IOException;
 	
 	/**
-	 * Parses a file, collecting its stems and storing them to an inverted index
-	 * @param filePath path of one file
-	 * @param index InvertedIndex to store stems into
-	 * @throws IOException In case of IO error
+	 * Class whose sole responsibility is to represent the task: "Given the path to one file, read through the file,
+	 * stemming each line, storing those stems into an inverted index. After, merge the contents of this index into
+	 * a common index.
+	 * @author JRRed
+	 *
 	 */
-	public static void parseFile(Path filePath, InvertedIndex index) throws IOException {
-		int position = 1;
-		String location = filePath.toString();
-		Stemmer stemmer = new SnowballStemmer(SnowballStemmer.ALGORITHM.ENGLISH); // Note: Make these a task w/ index.merge() for P3
+	protected class ParseFileTask extends Thread {
+		/** file path to read */
+		private final Path path;
 		
-		try ( BufferedReader reader = Files.newBufferedReader(filePath, StandardCharsets.UTF_8) ) {
-			String line;
-			while ( (line = reader.readLine()) != null ) {
-				String[] parsedLine = TextParser.parse(line);
-				
-				for (String word : parsedLine) {
-					index.add( stemmer.stem(word).toString(), location, position++ );
+		/** an index to store local results into */
+		private final ThreadSafeInvertedIndex localIndex;
+		
+		/** stemmer for turning lines into word stems */
+		private final SnowballStemmer stemmer;
+		
+		/**
+		 * Constructor
+		 * @param path file path
+		 */
+		public ParseFileTask(Path path) {
+			this.path = path;
+			this.localIndex = new ThreadSafeInvertedIndex();
+			this.stemmer = new SnowballStemmer(SnowballStemmer.ALGORITHM.ENGLISH);
+		}
+		
+		@Override
+		public void run() {
+			String location = path.toString();
+			int position = 1;
+			
+			try ( BufferedReader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8) ) {
+				String line;
+				while ( (line = reader.readLine()) != null ) {
+					String[] parsedLine = TextParser.parse(line);
+					
+					for (String word : parsedLine) {
+						localIndex.add( stemmer.stem(word).toString(), location, position++ );
+					}
 				}
+				index.attemptMergeWith(localIndex);
+			}
+			catch(Exception e) {
+				System.err.println("ERROR - TASK W/ LOCATION " + location + " HAS HAD IO ERROR");
 			}
 		}
-	}
-
-	/**
-	 * Parses a file, collecting its stems and storing them to an inverted index
-	 * @param filePath path of one file
-	 * @throws IOException In case of IO error
-	 */
-	public void parseFile(Path filePath) throws IOException {
-		parseFile(filePath, this.index);
 	}
 }
