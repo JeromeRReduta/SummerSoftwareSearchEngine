@@ -2,7 +2,6 @@ import java.io.IOException;
 import java.io.Writer;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -10,8 +9,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.function.BiConsumer;
-
 
 /**
  * Class whose sole responsibility is to store data in an InvertedIndex format
@@ -58,19 +55,8 @@ public class InvertedIndex {
 	 * @return An unmodifiable view of all the strings in the index
 	 * @note Shouldn't use Collections.unmodifiableMap(), b/c unmodifiableX() only makes outermost layer of X unmodifiable - inner structures are still mutable
 	 */
-	public Set<String> getStrings() {
+	public Set<String> get() {
 		return Collections.unmodifiableSet( map.keySet() );
-	}
-	
-	/**
-	 * Returns an unmodifiable view of the strings in the index, starting with a given string (or if that string isn't in the map,
-	 * starting with the first string in the map after the given string)
-	 * @param start string
-	 * @return An unmodifiable view of the index. If the string exists in the map, this set will start with that given string. Otherwise,
-	 * this set will start with the first string in the map that comes after the given string.
-	 */
-	public Set<String> getStringsStartingWith(String start) {
-		return Collections.unmodifiableSet( map.tailMap(start).keySet() );
 	}
 	
 	/**
@@ -78,7 +64,7 @@ public class InvertedIndex {
 	 * @param str string
 	 * @return An unmodifiable view of all the locations containing the given string
 	 */
-	public Set<String> getLocationsContaining(String str) {
+	public Set<String> get(String str) {
 		return contains(str)
 				? Collections.unmodifiableSet( map.get(str).keySet() ) : Collections.emptySet();
 	}
@@ -89,7 +75,7 @@ public class InvertedIndex {
 	 * @param location location
 	 * @return An unmodifiable view of all the positions where a string shows up in a given location
 	 */
-	public Set<Integer> getPositionsOfStringInLocation(String str, String location) {
+	public Set<Integer> get(String str, String location) {
 		return contains(str, location)
 				? Collections.unmodifiableSet( map.get(str).get(location) ) : Collections.emptySet();
 	}
@@ -98,8 +84,16 @@ public class InvertedIndex {
 	 * Returns an unmodifiable view of the number of times each string appears in the index
 	 * @return An unmodifiable view of the number of times each string appears in the index
 	 */
-	public Map<String, Integer> getStringCount() {
+	public Map<String, Integer> getCounts() {
 		return Collections.unmodifiableMap(stringCount);
+	}
+
+	/**
+	 * Returns size of counts map, which is the number of strings in this index
+	 * @return Size of counts map, which is the number of strings in this index
+	 */
+	public int countsSize() {
+		return stringCount.size();
 	}
 	
 	/**
@@ -107,7 +101,7 @@ public class InvertedIndex {
 	 * @param location location
 	 * @return How many times a given string appears in the index
 	 */
-	public int numOfTimesStringAppearsInLocation(String location) {
+	public int countsSize(String location) {
 		return stringCount.get(location) != null ? stringCount.get(location) : 0;
 	}
 	
@@ -145,7 +139,7 @@ public class InvertedIndex {
 	 * Returns the number of strings in the index
 	 * @return The number of strings in the index
 	 */
-	public int numOfStrings() {
+	public int size() {
 		return map.size();
 	}
 	
@@ -154,7 +148,7 @@ public class InvertedIndex {
 	 * @param str string
 	 * @return The number of locations containing a given string. If there's no mapping, returns 0.
 	 */
-	public int numOfLocationsContainingString(String str) {
+	public int size(String str) {
 		return contains(str) ? map.get(str).size() : 0;
 	}
 	
@@ -164,7 +158,7 @@ public class InvertedIndex {
 	 * @param location location
 	 * @return The number of times a given string appears in a given location. If there's no mapping, returns 0.
 	 */
-	public int numOfTimesStringAppearsInLocation(String str, String location) {
+	public int size(String str, String location) {
 		return contains(str, location) ? map.get(str).get(location).size() : 0;
 	}
 	
@@ -194,7 +188,7 @@ public class InvertedIndex {
 	 * Creates a JSON version of the string count map, as a string
 	 * @return A JSON version of the string count map, as a string
 	 */
-	public String stringCountsToJson() {
+	public String countsToJson() {
 		return SimpleJsonWriter.asObject(stringCount);
 	}
 	
@@ -203,7 +197,7 @@ public class InvertedIndex {
 	 * @param path file path
 	 * @throws IOException In case IO Error occurs
 	 */
-	public void stringCountsToJson(Path path) throws IOException {
+	public void countsToJson(Path path) throws IOException {
 		SimpleJsonWriter.asObject(stringCount, path);
 	}
 	
@@ -213,12 +207,10 @@ public class InvertedIndex {
 	 * @param other other inverted index
 	 */
 	public void attemptMergeWith(InvertedIndex other) {
-		
 		if (this.equals(other)) return; // check that we're not trying to merge index with itself
 		
 		mergeMapWith(other);
 		other.stringCount.forEach((key, value) -> stringCount.merge(key, value, Math::max));
-		
 	}
 	
 	/**
@@ -266,29 +258,30 @@ public class InvertedIndex {
 	}
 	
 	/**
-	 * Searches the set of stems with exact search, and returns the results
+	 * Searches the index for each given stem and returns its results
 	 * @param stems stems
-	 * @return Search results from exact search
+	 * @return Results from this search
 	 */
-	public Collection<SearchResult> exactSearch(Set<String> stems) {
-		return new IndexSearcher(stems).exactSearch().results();
+	public List<SearchResult> exactSearch(Set<String> stems) {
+		List<SearchResult> results = new ArrayList<>();
+		Map<String, SearchResult> lookup = new HashMap<>();
+	
+		for (String query : stems) {
+			if ( !contains(query) ) continue;
+			updateResults(query, lookup, results);
+		}
+		Collections.sort(results);
+		return results;
 	}
 	
 	/**
-	 * Searches the set of stems with partial search, and returns the results
+	 * Searches the index for each given partial stem in stems and returns its results
 	 * @param stems stems
-	 * @return Search results from partial search
+	 * @return Results from this search
+	 * @note X is defined as a partial stem of Y if X starts with Y. Note that common partial stems are counted
+	 * twice. E.g. if the partial stems would be ("yourselv", "yourself", "your", "yourself", "yourselv"), then
+	 * "yourselv" and "yourself" are each counted twice
 	 */
-	public Collection<SearchResult> partialSearch(Set<String> stems) {
-		return new IndexSearcher(stems).partialSearch().results();
-	}
-	
-	/*
-	 * 
-
-public Collection<SearchResult> exactSearch(Set<String> stems) {
-
-}
 
 public Collection<SearchResult> partialSearch(Set<String> stems) {
 	Map<String, SearchResult> lookup = ...;
@@ -296,172 +289,42 @@ public Collection<SearchResult> partialSearch(Set<String> stems) {
 	
 	for (String query : querySet) {
 		for (String key : map.tailMap(query).keySet() ) {
+	public List<SearchResult> partialSearch(Set<String> stems) {
+		List<SearchResult> results = new ArrayList<>();
+		Map<String, SearchResult> lookup = new HashMap<>();
 		
-			if (!key.startsWith(query)) { return; }
-
-			Set<String> locations = map.get(query).keySet();
-
-			for (String pathName : locations) {
-				if (!lookup.containsKey(pathName)) {
-					SearchResult result = new SearchResult(pathName);
-					lookup.put(pathName, result);
-					results.add(result);
-				}
-
-				lookup.get(pathName).update(key);
+		for (String query : stems) {
+			var it = map.tailMap(query).keySet().iterator();
+			String current;
+			
+			while (it.hasNext() && (current = it.next()).startsWith(query)) {
+				if ( !contains(current) ) continue;
+				updateResults(current,  lookup,  results);
 			}
 		}
+		Collections.sort(results);
+		return results;
 	}
-	
-	Collections.sort(results);
-	return results;
-}
-
----one option---
-
-public Collection<SearchResult> search(Set<String> stems, boolean exact) {
-	Map<String, SearchResult> lookup = ...;
-	List<SearchResult> results = ...;
-	
-	for (String query : querySet) {
-		call exact -or- partial
-	}
-	
-	Collections.sort(results);
-	return results;
-}
-
----another option---
-
-public Collection<SearchResult> partialSearch(Set<String> stems) {
-	Map<String, SearchResult> lookup = ...;
-	List<SearchResult> results = ...;
-	
-	for (String query : querySet) {
-		for (String key : map.tailMap(query).keySet() ) {
-		
-			if (!key.startsWith(query)) { return; }
-
-			searchHelper(...);
-		}
-	}
-	
-	Collections.sort(results);
-	return results;
-}
-
----another option---
-
-try to combine the two above <---- starts to get tricky and hard to follow
-
-	 */
 	
 	/**
-	 * Class whose sole responsibility is to provide search functionality to its enclosing inverted index. 
-	 * @author JRRed
+	 * Updates a list of search results based on a query string
+	 * @param query query string
+	 * @param lookup lookup map, used to make sure only one SearchResult per location per search exists
+	 * @param results list of search results. This function updates this list.
+	 * @note Precondition: contains(query) == true (i.e. map.get(query) != null)
 	 */
-	private class IndexSearcher {
-
-		/** List of Search Results from calling the searcher's search function */
-		List<SearchResult> results;
-		
-		/** Lookup map, to make sure the searcher only creates one search result per unique string */
-		Map<String, SearchResult> lookup;
-		
-		/** Collection of stems to search */
-		Collection<String> stems;
-		
-		/**
-		 * Constructor
-		 * @param stems stems to search
-		 */
-		public IndexSearcher(Collection<String> stems) {
-			this.results = new ArrayList<>();
-			this.lookup = new HashMap<>();
-			this.stems = stems;
-		}
-
-		/**
-		 * Updates this searcher's results using an exact search algorithm
-		 * @return the searcher, for method chaining
-		 */
-		private IndexSearcher exactSearch() {
-			updateMatches(stems, (pathName, query) -> {
-				SearchResult result = lookup.get(pathName);
-				result.count  += numOfTimesStringAppearsInLocation(query,  pathName);
-				result.score = (double)result.count / stringCount.get(pathName);
-			});
-			return this;
-		}
-		
-		/**
-		 * Updates this searcher's results using a partial search algorithm
-		 * @return the searcher, for method chaining
-		 * 
-		 * @note This partial search algorithm specifies that common partial stems are counted multiple times. For example, if
-		 * the partial stems would be ("your", "yourselv", "yourself", "yourselv"), then "yourselv" and "yourself" are each counted twice.
-		 */
-		private IndexSearcher partialSearch() {
-			Map<String, Integer> partialStemFreqMap = createPartialStemFreqMap();
-			updateMatches(partialStemFreqMap.keySet(), (pathName, query) -> {
-				SearchResult result = lookup.get(pathName);
-				result.count  += numOfTimesStringAppearsInLocation(query,  pathName) * partialStemFreqMap.get(query);
-				result.score = (double)result.count / stringCount.get(pathName);
-			});
-			return this;
-		}
-		
-		/**
-		 * Creates a map storing how often a partial stem should be counted in the index.
-		 * @return A partial stem frequency map
-		 */
-		private Map<String, Integer> createPartialStemFreqMap() {
-			Map<String, Integer> partialStemFreqMap = new TreeMap<>();
-			for (String stem : stems) {
-				var it = map.tailMap(stem).keySet().iterator();
-				
-				String current;
-				while ( it.hasNext() && (current = it.next()).startsWith(stem) ) {
-					partialStemFreqMap.compute(current,  (k, v) -> v == null ? 1 : v + 1); // Got this implementation from https://www.baeldung.com/java-word-frequency
-				}
+	private void updateResults(String query, Map<String, SearchResult> lookup, List<SearchResult> results) {
+		Set<String> locations = map.get(query).keySet();
+		for (String location : locations) {
+			if (!lookup.containsKey(location)) {
+				SearchResult result = new SearchResult(location);
+				lookup.put(location, result);
+				results.add(result);
 			}
-			return partialStemFreqMap;
-		}
-		
-		/**
-		 * Sorts and returns the searcher's results. After this, the IndexSearcher should not longer be used.
-		 * @return The searcher's results, sorted.
-		 */
-		private List<SearchResult> results() {
-			Collections.sort(results);
-			return results;
-		}
-		
-		/**
-		 * Updates this class's collection of search results based off the query set and update function
-		 * @param querySet set of queries (exact queries or partial queries)
-		 * @param updateFunc the function to update this class's collection of search results with
-		 */
-		private void updateMatches(Collection<String> querySet, BiConsumer<String, String> updateFunc) {
-			for (String query : querySet) {
-				if ( contains(query) ) {
-					
-					Set<String> locations = map.get(query).keySet();
-					
-					for (String pathName : locations) {
-						if (!lookup.containsKey(pathName)) {
-							SearchResult result = new SearchResult(pathName);
-							lookup.put(pathName, result);
-							results.add(result);
-						}
-						
-						updateFunc.accept(pathName,  query);
-					}
-				}
-			}
+			lookup.get(location).update(query);
 		}
 	}
-
+	
 	/**
 	 * Class whose sole responsibility is to hold data gained from searching the index
 	 * @author JRRed
@@ -487,12 +350,15 @@ try to combine the two above <---- starts to get tricky and hard to follow
 			this.score = 0;
 		}
 		
-		/* 
-		private void update(String match) {
-			this.count  += map.get(match).get(location).size();
-			this.score = (double) this.count / stringCount.get(location);
+		/**
+		 * Updates this SearchResult based on the string
+		 * @param str string
+		 * @note Precondition: contains(match, location) must return true
+		 */
+		private void update(String str) {
+			this.count  += map.get(str).get(location).size();
+			this.score = (double)this.count / stringCount.get(location);
 		}
-		*/
 
 		@Override
 		public int compareTo(InvertedIndex.SearchResult other) {

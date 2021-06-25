@@ -40,7 +40,7 @@ public abstract class SearchResultCollector {
 	 * the collector determines when searching is necessary is implementation-specific.
 	 * @param queryPath path of query file
 	 * @throws IOException in case of IO Error
-	 */
+   */
 	public abstract void search(final Path queryPath) throws IOException;
 	
 	/**
