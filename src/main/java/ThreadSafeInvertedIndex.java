@@ -13,7 +13,7 @@ import java.util.Set;
 public class ThreadSafeInvertedIndex extends InvertedIndex {
 	
 	/** lock used for synchronization */
-	private final SimpleReadWriteLock lock = new SimpleReadWriteLock();
+	private final SimpleReadWriteLock lock = new SimpleReadWriteLock(); // TODO Put initialization in constructor
 	
 	@Override
 	public void add(String str, String location, int position) {

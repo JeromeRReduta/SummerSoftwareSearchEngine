@@ -3,6 +3,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
+/*
+ * TODO Collapse WordStemCollector and SingleThreadedStemCollector
+ * into one class, the resuable build portion put in a static method
+ */
+
 /**
  * Class whose sole responsibility is to parse text files for word stems and store them in an inverted index
  * @author JRRed

@@ -37,6 +37,7 @@ public class WorkQueue {
 	
 	/** Keeps track of how many tasks are in the queue */
 	private int pending;
+	
 	/**
 	 * Starts a work queue with the default number of threads.
 	 *
@@ -82,12 +83,12 @@ public class WorkQueue {
 	}
 	
 	/** Safely increments pending */
-	public synchronized void incrementPending() {
+	public synchronized void incrementPending() { // TODO private
 		pending++;
 	}
 	
 	/** Safely decrements pending. If after decrementing, pending == 0, notifies all waiting threasd */
-	public synchronized void decrementPending() {
+	public synchronized void decrementPending() { // TODO private
 		pending--;
 		if (pending == 0) {
 			this.notifyAll();

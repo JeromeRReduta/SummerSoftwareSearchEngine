@@ -28,7 +28,12 @@ public class SearchEngine {
 			this.index = new ThreadSafeInvertedIndex();
 			assert this.index instanceof ThreadSafeInvertedIndex;
 			
-			ThreadSafeInvertedIndex threadSafe = (ThreadSafeInvertedIndex)this.index;
+			ThreadSafeInvertedIndex threadSafe = (ThreadSafeInvertedIndex)this.index; // TODO downcast
+			
+			/* TODO 
+			ThreadSafeInvertedIndex threadSafe = new ThreadSafeInvertedIndex();
+			this.index = threadSafe;
+			*/
 			
 			this.stemCollector = new MultiThreadedStemCollector(threadSafe, queue);
 			this.searcher = new MultiThreadedSearchCollector(threadSafe, argMap.hasFlag("-exact"), queue);

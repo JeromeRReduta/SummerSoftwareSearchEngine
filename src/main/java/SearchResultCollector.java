@@ -7,6 +7,13 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.function.Function;
 
+/*
+ * TODO 
+ * The interface approach avoids some of the issues we are having here
+ * Convert this into an interface that is implemented by both classes instead
+ * Will lose some of the nice data reuse when you take that approach
+ */
+
 /**
  * Class whose sole responsibility is to represent something that searches an InvertedIndex and collects its results into a list,
  * which can then be output into a file. This class has a single-threaded and multi-threaded implementation.
@@ -58,7 +65,7 @@ public abstract class SearchResultCollector {
 	 * @author JRRed
 	 *
 	 */
-	public class SearchLineTask extends Thread {
+	public class SearchLineTask extends Thread { // TODO Don't want to create tasks for single threaded setting
 		/** line to search */
 		private String line;
 		

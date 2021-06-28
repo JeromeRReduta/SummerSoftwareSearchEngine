@@ -54,7 +54,7 @@ public abstract class WordStemCollector {
 		 */
 		public ParseFileTask(Path path) {
 			this.path = path;
-			this.localIndex = new ThreadSafeInvertedIndex();
+			this.localIndex = new ThreadSafeInvertedIndex(); // TODO Make a normal index
 			this.stemmer = new SnowballStemmer(SnowballStemmer.ALGORITHM.ENGLISH);
 		}
 		
