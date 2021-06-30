@@ -261,7 +261,7 @@ public class SimpleReadWriteLock {
 			log.debug("Acquiring read lock...");
 
 			try {
-				synchronized (lock) {
+				synchronized (lock) { // TODO Fix up formatting
 					
 					// From https://docs.oracle.com/en/java/javase/15/docs/api/java.base/java/util/concurrent/locks/ReentrantReadWriteLock.WriteLock.html#lock():
 					// "If current thread already holds write lock then hold count incremented by one and method returns immediately"
@@ -270,7 +270,7 @@ public class SimpleReadWriteLock {
 						return;
 					}
 					
-					while (writers > 0) {
+					while (writers > 0 /* TODO add in the activeWriter test here */) {
 						log.debug("Waiting for read lock...");
 						
 						lock.wait();
@@ -336,7 +336,7 @@ public class SimpleReadWriteLock {
 							
 					}
 					
-					while (readers + writers > 0 ) {
+					while (readers + writers > 0 ) { // TODO Integrate the activeWriter condition here
 						lock.wait();
 					}
 					
@@ -379,7 +379,7 @@ public class SimpleReadWriteLock {
 					}
 				}
 				finally {
-					lock.notifyAll();
+					lock.notifyAll(); // TODO Usually this is in the writers == 0 if block instead to avoid over-notification
 				}
 			}
 		}

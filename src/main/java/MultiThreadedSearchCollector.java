@@ -24,6 +24,8 @@ public class MultiThreadedSearchCollector extends SearchResultCollector {
 		this.queue = queue;
 	}
 	
+	// TODO It is possible to initialize with a normal non thread-safe inverted index because of the inherited constructor
+	
 	/**
 	 * General search function. Applies this searcher's search function over a text file
 	 * @param queryPath path of query stems
