@@ -13,7 +13,7 @@ import java.time.Instant;
  */
 public class Driver {
 
-	// Note: THIS IS PROJECT 3 BRANCH - SWITCH TO MAIN ONE ONCE DESIGN PASSES
+	// Note: THIS IS PROJECT 4 BRANCH - SWITCH TO MAIN ONE ONCE DESIGN PASSES
 	/**
 	 * Initializes the classes necessary based on the provided command-line
 	 * arguments. This includes (but is not limited to) how to build or search an
@@ -29,6 +29,8 @@ public class Driver {
 		ArgumentMap argMap = new ArgumentMap(args);
 		SearchEngine searchEngine = new SearchEngine(argMap);
 		
+		/**
+		
 		if (argMap.hasFlag("-text")) { // Collect stems from file(s): argMap.getPath("-text") and store in invertedIndex
 			final Path text = argMap.getPath("-text");
 			
@@ -42,6 +44,14 @@ public class Driver {
 				System.err.printf("Error: Could not build inverted index from path: %s%n", text);
 			}
 			
+		}
+		
+		*/
+		if (argMap.hasFlag("-html")) {
+			final String seed = argMap.getString("-html", null);
+			WebCrawler crawler = new WebCrawler(new ThreadSafeInvertedIndex(),
+					new WorkQueue(), argMap.getInteger("-max", 1)); // Note: getInteger here is unsafe - could be negative
+			crawler.crawlFrom(seed);
 		}
 		if (argMap.hasFlag("-query")) {
 			final Path query = argMap.getPath("-query");
