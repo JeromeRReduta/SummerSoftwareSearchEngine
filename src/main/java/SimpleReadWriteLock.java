@@ -261,29 +261,14 @@ public class SimpleReadWriteLock {
 			log.debug("Acquiring read lock...");
 
 			try {
-				synchronized (lock) { // TODO Fix up formatting
-					
-					// From https://docs.oracle.com/en/java/javase/15/docs/api/java.base/java/util/concurrent/locks/ReentrantReadWriteLock.WriteLock.html#lock():
-					// "If current thread already holds write lock then hold count incremented by one and method returns immediately"
-					if ( Thread.currentThread().equals(activeWriter) ) {
-						readers++;
-						return;
-					}
-					
-					while (writers > 0 /* TODO add in the activeWriter test here */) {
+				synchronized (lock) {
+					while ( writers > 0 && !isActiveWriter() ) {
 						log.debug("Waiting for read lock...");
-						
 						lock.wait();
-						
-						
-
 					}
-
 					log.debug("Woke up waiting for read lock...");
-					assert writers == 0;
 					readers++;
 				}
-
 				log.debug("Acquired read lock.");
 			}
 			catch (InterruptedException ex) {
@@ -300,7 +285,6 @@ public class SimpleReadWriteLock {
 		 */
 		@Override
 		public void unlock() throws IllegalStateException {
-
 			synchronized(lock) {
 				if (readers == 0) throw new IllegalStateException("trying to unlock read lock but there are 0 readers");
 				
@@ -325,23 +309,12 @@ public class SimpleReadWriteLock {
 		 */
 		@Override
 		public void lock() {
-			
 			try {
 				synchronized (lock) {
-					
-					if (Thread.currentThread().equals(activeWriter)) {
-						lock.notifyAll();
-						writers++;
-						return; // same logic as readlock.lock()
-							
-					}
-					
-					while (readers + writers > 0 ) { // TODO Integrate the activeWriter condition here
+					while ( readers + writers > 0 && !isActiveWriter() ) {
 						lock.wait();
 					}
-					
 					writers++;
-					
 					activeWriter = Thread.currentThread();
 				}
 			}
@@ -349,7 +322,6 @@ public class SimpleReadWriteLock {
 				log.catching(Level.DEBUG, ex);
 				Thread.currentThread().interrupt();
 			}
-			
 		}
 
 		/**
@@ -362,24 +334,19 @@ public class SimpleReadWriteLock {
 		 */
 		@Override
 		public void unlock() throws IllegalStateException, ConcurrentModificationException {
-
 			synchronized(lock) {
-				try {
-					if (writers == 0) {
-						throw new IllegalStateException("Out of writers");
-					}
-					else if ( !( Thread.currentThread().equals(activeWriter) ) ) {
-						throw new ConcurrentModificationException("Attempting to unlock from wrong writer");
-					}
-					
-					writers--;
-					
-					if (writers == 0) {
-						activeWriter = null;
-					}
+				if (writers == 0) {
+					throw new IllegalStateException("Out of writers");
 				}
-				finally {
-					lock.notifyAll(); // TODO Usually this is in the writers == 0 if block instead to avoid over-notification
+				else if ( !isActiveWriter() ) {
+					throw new ConcurrentModificationException("Attempting to unlock from wrong writer");
+				}
+				
+				writers--;
+				
+				if (writers == 0) {
+					activeWriter = null;
+					lock.notifyAll();
 				}
 			}
 		}
