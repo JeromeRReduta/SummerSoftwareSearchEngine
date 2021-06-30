@@ -78,14 +78,12 @@ public class WebCrawler {
 				return stemmer.stem(word.replaceAll("(\\W)|(\\d)", "")).toString(); // TODO: antelope w/ special symbols -> antelp, should be antelop
 			}).collect(Collectors.toList());
 			
-			
-			System.out.println("antelöpé stemmed: " + stemmer.stem("antelöpé").toString());
 			System.out.println("STEMMED HTML: " + stemmedHtml);
 			for (String word : splitHtml) {
 				
 				System.out.println("Word: '" + word + "' isBlank? " + word.isBlank());
 				if (word == null || word.isBlank()) continue;
-				index.add( stemmer.stem(word.strip()).toString(), seed, position++);
+				index.add( stemmer.stem(word.replaceAll("(\\W)|(\\d)", "")).toString(), seed, position++);
 			}
 			
 			System.out.println("Index: " + index.toJson());
