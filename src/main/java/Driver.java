@@ -1,3 +1,4 @@
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -52,7 +53,7 @@ public class Driver {
 		if (argMap.hasFlag("-html")) {
 			final String seed = argMap.getString("-html", null);
 			WebCrawler crawler = new WebCrawler(threadSafe,
-					new WorkQueue(), argMap.getInteger("-max", 1)); // Note: getInteger here is unsafe - could be negative
+					new WorkQueue(argMap.getInteger("-threads", WorkQueue.DEFAULT)), argMap.getInteger("-max", 1)); // Note: getInteger here is unsafe - could be negative
 			crawler.crawlFrom(seed);
 		}
 		if (argMap.hasFlag("-query")) {
@@ -74,8 +75,10 @@ public class Driver {
 			final Path index = argMap.getPath( "-index", Path.of("index.json") );
 			
 			try {
+				FileWriter writer = new FileWriter("Bubba.txt");
 				System.out.println("OUTPUTTING THREADSAFE TO JSON");
 				threadSafe.toJson(index);
+				writer.write("Index is now: " + threadSafe.toJson());
 				//searchEngine.outputIndexTo(index);
 			}
 			catch (IOException e) {

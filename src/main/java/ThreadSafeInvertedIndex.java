@@ -143,7 +143,6 @@ public class ThreadSafeInvertedIndex extends InvertedIndex {
 	
 	@Override
 	public void attemptMergeWith(InvertedIndex other) {
-		if ( !(other instanceof ThreadSafeInvertedIndex) ) return;
 		lock.synchronizeWithConsumer(super::attemptMergeWith, other, true);
 		
 	}
