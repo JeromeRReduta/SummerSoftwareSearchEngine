@@ -47,9 +47,11 @@ public class Driver {
 		}
 		
 		*/
+		
+		ThreadSafeInvertedIndex threadSafe = new ThreadSafeInvertedIndex();
 		if (argMap.hasFlag("-html")) {
 			final String seed = argMap.getString("-html", null);
-			WebCrawler crawler = new WebCrawler(new ThreadSafeInvertedIndex(),
+			WebCrawler crawler = new WebCrawler(threadSafe,
 					new WorkQueue(), argMap.getInteger("-max", 1)); // Note: getInteger here is unsafe - could be negative
 			crawler.crawlFrom(seed);
 		}
@@ -72,7 +74,9 @@ public class Driver {
 			final Path index = argMap.getPath( "-index", Path.of("index.json") );
 			
 			try {
-				searchEngine.outputIndexTo(index);
+				System.out.println("OUTPUTTING THREADSAFE TO JSON");
+				threadSafe.toJson(index);
+				//searchEngine.outputIndexTo(index);
 			}
 			catch (IOException e) {
 				System.err.printf("Error: Error occurred while dealing with path: %s%n", index);

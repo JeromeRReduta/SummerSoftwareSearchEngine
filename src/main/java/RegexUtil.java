@@ -12,7 +12,7 @@ public class RegexUtil {
 	public final static String htmlEntity = flags + "&\\w*?;";
 	
 	/** Represents the regex /&#60;(anything)&#62;/ + flags */
-	public final static String htmlTag = flags + "<.*?>";
+	public final static String htmlTag = flags + "<(?!\\w*?-\\w*?).*?>";
 	
 	/** Represents the regex /&#60;!--(\s)*?(anything)(\s)*?--&#62;*/
 	public final static String htmlComment = flags + "<!--(\s)*?(.)*?(\s)*?-->";
