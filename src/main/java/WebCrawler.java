@@ -42,7 +42,7 @@ public class WebCrawler extends WordStemCollector {
 		private int position;
 		private final InvertedIndex localIndex;
 		
-		public CrawlURLTask(String link) { // TODO: Put anything that involves writelock out of constructor...
+		public CrawlURLTask(String link) {
 				this.linkName = link;
 				this.position = 1;
 				this.localIndex = new InvertedIndex();
@@ -50,6 +50,7 @@ public class WebCrawler extends WordStemCollector {
 		
 		public String processHtmlFrom(String link) {
 			String html = HtmlFetcher.fetch(link, 3); // Supposed to do 3 redirects
+			// TODO: HttpsFetcher.openConnection() takes up one port - have to sync access to this
 			if (html == null) return null;
 			
 

@@ -126,7 +126,8 @@ public class HtmlFetcher {
 			}
 		}
 		catch (Exception e) {
-			System.err.println("Error - HTMLFetcher - could not fetch html:%n" + e.getMessage());
+			System.err.println("Error - HTMLFetcher - could not fetch html:%n" );
+			e.printStackTrace();
 		}
 		return null;
 	}
