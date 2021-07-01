@@ -23,16 +23,17 @@ public class SingleThreadedStemCollector extends WordStemCollector {
 	}
 	
 	@Override
-	public void collectStemsFrom(Path seed) throws IOException {
-		if (Files.isDirectory(seed)) { // Case: Directory - call parseFile() for each text file in directory
-			List<Path> filePaths = TextFileFinder.list(seed);
+	public void collectStemsFrom(String seed) throws IOException {
+		Path path = Path.of(seed);
+		if (Files.isDirectory(path)) { // Case: Directory - call parseFile() for each text file in directory
+			List<Path> filePaths = TextFileFinder.list(path);
 			
 			for (Path filePath : filePaths) { // Case: one file - call parseFile() just for this file
 				new ParseFileTask(filePath).run();
 			}
 		}
-		else if (Files.isRegularFile(seed, java.nio.file.LinkOption.NOFOLLOW_LINKS)) {
-			new ParseFileTask(seed).run();
+		else if (Files.isRegularFile(path, java.nio.file.LinkOption.NOFOLLOW_LINKS)) {
+			new ParseFileTask(path).run();
 		}
 	}
 }

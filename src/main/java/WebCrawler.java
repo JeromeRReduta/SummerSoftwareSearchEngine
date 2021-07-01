@@ -1,3 +1,4 @@
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -11,7 +12,7 @@ import org.apache.logging.log4j.Logger;
 import opennlp.tools.stemmer.Stemmer;
 import opennlp.tools.stemmer.snowball.SnowballStemmer;
 
-public class WebCrawler {
+public class WebCrawler extends WordStemCollector {
 	private static Logger log = LogManager.getLogger();
 	
 	private final Set<URL> lookup;
@@ -22,6 +23,7 @@ public class WebCrawler {
 	
 	// TODO: single-threaded implementation for debugging - get workqueue version working after you confirm this one works
 	public WebCrawler(ThreadSafeInvertedIndex index, WorkQueue queue, int max) {
+		super(index);
 		this.index = index;
 		this.max = max;
 		this.queue = queue;
@@ -56,6 +58,7 @@ public class WebCrawler {
 		
 		public String processHtmlFrom(String link) {
 			String html = HtmlFetcher.fetch(link, 3); // Supposed to do 3 redirects
+			
 			if (html == null) return null;
 			
 			html = HtmlCleaner.stripComments(html);
@@ -168,17 +171,25 @@ public class WebCrawler {
 		
 		System.out.println(seed);
 		
+
+	}
+
+	@Override
+	public void collectStemsFrom(String seed) throws IOException {
 		try {
 			queue.execute(new CrawlURLTask(seed));
 			queue.finish();
 			System.out.printf("Links(%d): %s%n", links.size(), links.toString()); // TODO: AbstractPrefs not showing up
+			System.out.println("Index is now: " + index);
 			
 			
 			
 		}
 		catch (Exception e) {
-			System.out.println("Uhoh - webcrawler");
+			System.out.println("Uhoh - webcrawler"
+			+ e);
 		}
+		
 	}
 
 }

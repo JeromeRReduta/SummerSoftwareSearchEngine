@@ -1,4 +1,3 @@
-import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -30,10 +29,9 @@ public class Driver {
 		ArgumentMap argMap = new ArgumentMap(args);
 		SearchEngine searchEngine = new SearchEngine(argMap);
 		
-		/**
 		
-		if (argMap.hasFlag("-text")) { // Collect stems from file(s): argMap.getPath("-text") and store in invertedIndex
-			final Path text = argMap.getPath("-text");
+		if (argMap.hasFlag("-text") || argMap.hasFlag("-html")) { // Collect stems from file(s): argMap.getPath("-text") and store in invertedIndex
+			final String text = argMap.hasFlag("-html") ? argMap.getString("-html") : argMap.getString("-text");
 			
 			try {
 				searchEngine.parseFilesFrom(text);
@@ -47,15 +45,7 @@ public class Driver {
 			
 		}
 		
-		*/
 		
-		ThreadSafeInvertedIndex threadSafe = new ThreadSafeInvertedIndex();
-		if (argMap.hasFlag("-html")) {
-			final String seed = argMap.getString("-html", null);
-			WebCrawler crawler = new WebCrawler(threadSafe,
-					new WorkQueue(argMap.getInteger("-threads", WorkQueue.DEFAULT)), argMap.getInteger("-max", 1)); // Note: getInteger here is unsafe - could be negative
-			crawler.crawlFrom(seed);
-		}
 		if (argMap.hasFlag("-query")) {
 			final Path query = argMap.getPath("-query");
 			
@@ -75,11 +65,7 @@ public class Driver {
 			final Path index = argMap.getPath( "-index", Path.of("index.json") );
 			
 			try {
-				FileWriter writer = new FileWriter("Bubba.txt");
-				System.out.println("OUTPUTTING THREADSAFE TO JSON");
-				threadSafe.toJson(index);
-				writer.write("Index is now: " + threadSafe.toJson());
-				//searchEngine.outputIndexTo(index);
+				searchEngine.outputIndexTo(index);
 			}
 			catch (IOException e) {
 				System.err.printf("Error: Error occurred while dealing with path: %s%n", index);

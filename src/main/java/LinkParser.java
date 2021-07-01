@@ -60,7 +60,7 @@ public class LinkParser {
 							.replaceAll("\"", ""))));
 				}
 				catch (Exception e) {
-					System.out.println("Oh - LinkParser");
+					System.out.println("Oh - LinkParser: " + e);
 				}
 			}
 		}

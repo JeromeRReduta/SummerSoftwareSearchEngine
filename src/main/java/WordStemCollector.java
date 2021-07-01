@@ -29,7 +29,7 @@ public abstract class WordStemCollector {
 	 * @param seed file or directory path
 	 * @throws IOException in case of IO Error
 	 */
-	public abstract void collectStemsFrom(Path seed) throws IOException;
+	public abstract void collectStemsFrom(String seed) throws IOException;
 	
 	/**
 	 * Class whose sole responsibility is to represent the task: "Given the path to one file, read through the file,

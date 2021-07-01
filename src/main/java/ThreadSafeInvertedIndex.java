@@ -113,6 +113,8 @@ public class ThreadSafeInvertedIndex extends InvertedIndex {
 		finally {
 			lock.readLock().unlock();
 		}
+		
+		System.out.println("DONE!");
 	}
 	
 	@Override

@@ -23,7 +23,19 @@ public class SearchEngine {
 	 * @note Putting argMap here and not just the exact boolean for future-proofing for P3 and P4, when I will also have to deal with threads and crawling maybe
 	 */
 	public SearchEngine(ArgumentMap argMap) {
-		if (argMap.hasFlag("-threads")) {
+		
+		if (argMap.hasFlag("-html")) {
+			int threads = argMap.getInteger("-threads", WorkQueue.DEFAULT);
+			int safeThreads = threads > 0 ? threads : WorkQueue.DEFAULT;
+			WorkQueue queue = new WorkQueue(safeThreads);
+			
+			ThreadSafeInvertedIndex threadSafe = new ThreadSafeInvertedIndex();
+			this.index = threadSafe;
+			this.stemCollector = new WebCrawler(threadSafe, queue, argMap.getInteger("-max", 1));
+			this.searcher = new MultiThreadedSearchCollector(threadSafe, argMap.hasFlag("-exact"), queue);
+			
+		}
+		else if (argMap.hasFlag("-threads")) {
 			WorkQueue queue = new WorkQueue( argMap.getInteger("-threads", WorkQueue.DEFAULT) );
 			this.index = new ThreadSafeInvertedIndex();
 			assert this.index instanceof ThreadSafeInvertedIndex;
@@ -50,7 +62,7 @@ public class SearchEngine {
 	 * @param seed a directory or file path
 	 * @throws IOException in case of IO Error
 	 */
-	public void parseFilesFrom(Path seed) throws IOException {
+	public void parseFilesFrom(String seed) throws IOException {
 		stemCollector.collectStemsFrom(seed);
 	}
 	
@@ -62,6 +74,7 @@ public class SearchEngine {
 	public void searchFrom(Path queryPath) throws IOException {
 		searcher.search(queryPath);
 	}
+	
 	
 	/**
 	 * Outputs the search engine's Inverted Index (in JSON format) to an output file
