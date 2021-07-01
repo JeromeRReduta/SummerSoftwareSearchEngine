@@ -1,3 +1,4 @@
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -15,11 +16,14 @@ import opennlp.tools.stemmer.snowball.SnowballStemmer;
 public class WebCrawler extends WordStemCollector {
 	private static Logger log = LogManager.getLogger();
 	
+	private final SimpleReadWriteLock lock;
+	
 	private final Set<URL> lookup;
 	private final List<URL> links;
 	private final ThreadSafeInvertedIndex index;
 	private final WorkQueue queue;
 	private final int max;
+	private volatile int current = 0;
 	
 	// TODO: single-threaded implementation for debugging - get workqueue version working after you confirm this one works
 	public WebCrawler(ThreadSafeInvertedIndex index, WorkQueue queue, int max) {
@@ -29,38 +33,26 @@ public class WebCrawler extends WordStemCollector {
 		this.queue = queue;
 		this.links = new ArrayList<>();
 		this.lookup = new HashSet<>();
+		this.lock = new SimpleReadWriteLock();
 	}
 	
 	public class CrawlURLTask extends Thread {
 		
 		private String linkName;
-		private String html;
-		private final List<URL> linksFound;
 		private int position;
-		private final InvertedIndex commonIndex;
+		private final InvertedIndex localIndex;
 		
-		public CrawlURLTask(String link) throws MalformedURLException {
-			
-			synchronized(lookup) {
-				links.add(new URL(link));
-				lookup.add(new URL(link));
-			}
-				
-				
-			this.linkName = link;
-			this.html = processHtmlFrom(link);
-			this.linksFound = this.html != null ? LinkParser.getValidLinks(new URL(link), this.html)
-					: null;
-			
-			this.position = 1;
-			this.commonIndex = new InvertedIndex();
+		public CrawlURLTask(String link) { // TODO: Put anything that involves writelock out of constructor...
+				this.linkName = link;
+				this.position = 1;
+				this.localIndex = new InvertedIndex();
 		}
 		
 		public String processHtmlFrom(String link) {
 			String html = HtmlFetcher.fetch(link, 3); // Supposed to do 3 redirects
-			
 			if (html == null) return null;
 			
+
 			html = HtmlCleaner.stripComments(html);
 			html = HtmlCleaner.stripBlockElements(html);
 			return html;
@@ -68,41 +60,88 @@ public class WebCrawler extends WordStemCollector {
 		
 		@Override
 		public void run() {
+			URL linkURL;
+			try {
+				linkURL = new URL(linkName);
+			}
+			catch (Exception e) {
+				System.out.println("Dang");
+				linkURL = null;
+			}
+			String html = null;
+			try (FileWriter a = new FileWriter("newStuff.txt")) {
+				
+			 html = processHtmlFrom(linkName);
 			if (html == null) return;
+				
+			a.write("After processing: " + html);
 			
+			}
+			catch (Exception e) {
+			}
+			List<URL> linksFound = LinkParser.getValidLinks(linkURL, html);
+			
+			try (FileWriter a = new FileWriter("newStuff2.txt")) {
+					a.write("Links found: " + linksFound + "\n\n");
+			
+					a.write("LINKS FOUND FOR " + linkName + "(" + linksFound.size() + "):\n");
+					for (int i = 0; i < linksFound.size(); i++) {
+						a.write(i + ": " + linksFound.get(i) + "\t");
+					}
+			}
+			catch (Exception e) {
+				System.err.println("ERROR FOR " + linkName);
+			}
+			
+			
+			// if (html == null) return; // TODO: do we need to null check tiwce?
+			// TODO: is everything inside <td> </td> getting deleted?
+			lock.writeLock().lock();
+			//System.out.println("write locked");
 			try {
 				for (URL link : linksFound) {
 					
-					synchronized(lookup) {
-						if (links.size() == max) {
-							break;
-						}
-						if (lookup.contains(link)) continue;
+					System.out.println("LINK: " + link); // TODO: add filewriter ofr this, and see which hrefs come upfirst, and which hrefs are accepted
+				
+				
+				
+					System.out.println("Links.size(): " + links.size());
+					if (links.size() == max) break;
+					
+					
+					
+					if (!lookup.contains(link) && HtmlFetcher.fetch(link, 3) != null) {
+						lookup.add(linkURL);
+						links.add(linkURL);
+					//	System.out.printf("links(%d): %s%n", links.size(), links);
+						queue.execute(new CrawlURLTask(link.toString()));
 					}
-					queue.execute(new CrawlURLTask(link.toString()));
 				}
-				
-				html = HtmlCleaner.stripTags(html);// strip tags before strip entities, or else "<normal text, not tag>" will be counted and removed
-				html = HtmlCleaner.stripEntities(html);
-				
-				
-				String[] parsedHtml = TextParser.parse(html);
-				
-				Stemmer stemmer = new SnowballStemmer(SnowballStemmer.ALGORITHM.ENGLISH);
-				for (String word : parsedHtml) {
-					String stemmed = stemmer.stem( word.toLowerCase() ).toString();
-					if (stemmed.isBlank()) continue;
-					commonIndex.add(stemmed, linkName, position++);
-				}
-			
-				index.attemptMergeWith(commonIndex);
 			}
-			catch(Exception e) {
-				System.out.println("CrawlURLTask - something messed up ");
-				e.printStackTrace();
+			catch (Exception e) {
+				System.err.println("uh oh");
+			}
+			finally {
+				lock.writeLock().unlock();
+				System.out.println("write unlocked");
+			}
+					
+			
+				
+			html = HtmlCleaner.stripTags(html);// strip tags before strip entities, or else "<normal text, not tag>" will be counted and removed
+			html = HtmlCleaner.stripEntities(html);
+			String[] parsedHtml = TextParser.parse(html);
+			
+			Stemmer stemmer = new SnowballStemmer(SnowballStemmer.ALGORITHM.ENGLISH);
+			for (String word : parsedHtml) {
+				String stemmed = stemmer.stem( word.toLowerCase() ).toString();
+				if (stemmed.isBlank()) continue;
+				localIndex.add(stemmed, linkName, position++);
 			}
 		
+			index.attemptMergeWith(localIndex); // TODO: Search for what happens to "PREFERENCES" link in javadocs
 		}
+		
 	}
 	
 	/* Steps:
@@ -177,19 +216,18 @@ public class WebCrawler extends WordStemCollector {
 	@Override
 	public void collectStemsFrom(String seed) throws IOException {
 		try {
+			URL linkURL = new URL(seed);
+			//lookup.add(linkURL); // TODO: Did I forgot to add this in the first place?
+			//links.add(linkURL);
 			queue.execute(new CrawlURLTask(seed));
 			queue.finish();
-			System.out.printf("Links(%d): %s%n", links.size(), links.toString()); // TODO: AbstractPrefs not showing up
+			
 			System.out.println("Index is now: " + index);
-			
-			
-			
 		}
-		catch (Exception e) {
-			System.out.println("Uhoh - webcrawler"
-			+ e);
+		catch (MalformedURLException e) {
+			System.err.println("Error - webcrawler - bad URL");
 		}
-		
+
 	}
 
 }

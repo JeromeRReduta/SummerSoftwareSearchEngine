@@ -32,7 +32,7 @@ public class Driver {
 		
 		if (argMap.hasFlag("-text") || argMap.hasFlag("-html")) { // Collect stems from file(s): argMap.getPath("-text") and store in invertedIndex
 			final String text = argMap.hasFlag("-html") ? argMap.getString("-html") : argMap.getString("-text");
-			
+			System.out.println("TEXT: " + text);
 			try {
 				searchEngine.parseFilesFrom(text);
 			}

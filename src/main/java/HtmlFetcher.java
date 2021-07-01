@@ -128,7 +128,6 @@ public class HtmlFetcher {
 		catch (Exception e) {
 			System.err.println("Error - HTMLFetcher - could not fetch html:%n" + e.getMessage());
 		}
-		
 		return null;
 	}
 

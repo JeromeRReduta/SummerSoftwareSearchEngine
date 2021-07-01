@@ -27,6 +27,8 @@ public class SearchEngine {
 		if (argMap.hasFlag("-html")) {
 			int threads = argMap.getInteger("-threads", WorkQueue.DEFAULT);
 			int safeThreads = threads > 0 ? threads : WorkQueue.DEFAULT;
+			
+			System.out.println("Threads: " + safeThreads);
 			WorkQueue queue = new WorkQueue(safeThreads);
 			
 			ThreadSafeInvertedIndex threadSafe = new ThreadSafeInvertedIndex();
