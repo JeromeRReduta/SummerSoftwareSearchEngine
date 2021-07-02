@@ -16,6 +16,9 @@ public class SearchEngine {
 	
 	/** SearchResultCollector to search index with */
 	private final SearchResultCollector searcher;
+
+	/** Work queue. Will be shared among all the data structures this search engine uses */
+	private final WorkQueue queue;
 	
 	/**
 	 * Constructor
@@ -24,24 +27,22 @@ public class SearchEngine {
 	 */
 	public SearchEngine(ArgumentMap argMap) {
 		if (argMap.hasFlag("-threads")) {
-			WorkQueue queue = new WorkQueue( argMap.getInteger("-threads", WorkQueue.DEFAULT) );
-			this.index = new ThreadSafeInvertedIndex();
-			assert this.index instanceof ThreadSafeInvertedIndex;
-			
-			ThreadSafeInvertedIndex threadSafe = (ThreadSafeInvertedIndex)this.index; // TODO downcast
-			
-			/* TODO 
 			ThreadSafeInvertedIndex threadSafe = new ThreadSafeInvertedIndex();
+			this.queue = new WorkQueue(argMap.getInteger("-threads", WorkQueue.DEFAULT));
 			this.index = threadSafe;
-			*/
+			this.stemCollector = new WordStemCollector.MultiThreaded(threadSafe, queue); 
 			
-			this.stemCollector = new MultiThreadedStemCollector(threadSafe, queue);
-			this.searcher = new MultiThreadedSearchCollector(threadSafe, argMap.hasFlag("-exact"), queue);
+			this.searcher = new SearchResultCollector.MultiThreaded(
+					argMap.hasFlag("-exact") ? threadSafe::exactSearch : threadSafe::partialSearch,
+					queue);
 		}
 		else {
+			this.queue = null;
 			this.index = new InvertedIndex();
-			this.stemCollector = new SingleThreadedStemCollector( this.index );
-			this.searcher = new SingleThreadedSearchCollector( index, argMap.hasFlag("-exact") );
+			this.stemCollector = new WordStemCollector.SingleThreaded(index);
+			
+			this.searcher = new SearchResultCollector.SingleThreaded(
+					argMap.hasFlag("-exact") ? this.index::exactSearch : this.index::partialSearch);
 		}
 	}
 	
@@ -88,5 +89,12 @@ public class SearchEngine {
 	 */
 	public void outputResultsTo(Path path) throws IOException {
 		searcher.outputToFile(path);
+	}
+	
+	/**
+	 * If the search engine contains a work queue, runs queue.join()
+	 */
+	public final void joinQueue() {
+		if (queue != null) queue.join();
 	}
 }

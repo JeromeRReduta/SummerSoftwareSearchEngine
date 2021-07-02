@@ -13,7 +13,12 @@ import java.util.Set;
 public class ThreadSafeInvertedIndex extends InvertedIndex {
 	
 	/** lock used for synchronization */
-	private final SimpleReadWriteLock lock = new SimpleReadWriteLock(); // TODO Put initialization in constructor
+	private final SimpleReadWriteLock lock;
+	
+	public ThreadSafeInvertedIndex() {
+		super();
+		this.lock = new SimpleReadWriteLock();
+	}
 	
 	@Override
 	public void add(String str, String location, int position) {
@@ -143,7 +148,6 @@ public class ThreadSafeInvertedIndex extends InvertedIndex {
 	
 	@Override
 	public void attemptMergeWith(InvertedIndex other) {
-		if ( !(other instanceof ThreadSafeInvertedIndex) ) return;
 		lock.synchronizeWithConsumer(super::attemptMergeWith, other, true);
 		
 	}
