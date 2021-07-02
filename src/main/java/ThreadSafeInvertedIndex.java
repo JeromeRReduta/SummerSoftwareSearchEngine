@@ -36,42 +36,42 @@ public class ThreadSafeInvertedIndex extends InvertedIndex {
 	
 	@Override
 	public Set<String> get() {
-		return lock.synchronizeWithSupplier(super::get, false);
+		return lock.syncSupplier(super::get, false);
 	}
 	
 	@Override
 	public Set<String> get(String str) {
-		return lock.synchronizeWithFunction(super::get, str, false);
+		return lock.syncFunction(super::get, str, false);
 	}
 	
 	@Override
 	public Set<Integer> get(String str, String location) {
-		return lock.synchronizeWithBiFunction(super::get, str, location, false);
+		return lock.syncBiFunction(super::get, str, location, false);
 	}
 	
 	@Override
 	public Map<String, Integer> getCounts() {
-		return lock.synchronizeWithSupplier(super::getCounts, false);
+		return lock.syncSupplier(super::getCounts, false);
 	}
 	
 	@Override
 	public int countsSize() {
-		return lock.synchronizeWithSupplier(super::countsSize, false);
+		return lock.syncSupplier(super::countsSize, false);
 	}
 
 	@Override
 	public int countsSize(String location) {
-		return lock.synchronizeWithFunction(super::countsSize, location, false);
+		return lock.syncFunction(super::countsSize, location, false);
 	}
 	
 	@Override
 	public boolean contains(String str) {
-		return lock.synchronizeWithFunction(super::contains, str, false);
+		return lock.syncFunction(super::contains, str, false);
 	}
 	
 	@Override
 	public boolean contains(String str, String location) {
-		return lock.synchronizeWithBiFunction(super::contains, str, location, false);
+		return lock.syncBiFunction(super::contains, str, location, false);
 	}
 	
 	@Override
@@ -88,27 +88,27 @@ public class ThreadSafeInvertedIndex extends InvertedIndex {
 	
 	@Override
 	public int size() {
-		return lock.synchronizeWithSupplier(super::size, false);
+		return lock.syncSupplier(super::size, false);
 	}
 
 	@Override
 	public int size(String str) {
-		return lock.synchronizeWithFunction(super::size, str, false);
+		return lock.syncFunction(super::size, str, false);
 	}
 	
 	@Override
 	public int size(String str, String location) {
-		return lock.synchronizeWithBiFunction(super::size, str, location, false);
+		return lock.syncBiFunction(super::size, str, location, false);
 	}
 	
 	@Override
 	public String toString() {
-		return lock.synchronizeWithSupplier(super::toString, false);
+		return lock.syncSupplier(super::toString, false);
 	}
 	
 	@Override
 	public String toJson() {
-		return lock.synchronizeWithSupplier(super::toJson, false);
+		return lock.syncSupplier(super::toJson, false);
 	}
 	
 	@Override
@@ -125,7 +125,7 @@ public class ThreadSafeInvertedIndex extends InvertedIndex {
 	
 	@Override
 	public String countsToJson() {
-		return lock.synchronizeWithSupplier(super::countsToJson, false);
+		return lock.syncSupplier(super::countsToJson, false);
 	}
 	
 	@Override
@@ -141,17 +141,17 @@ public class ThreadSafeInvertedIndex extends InvertedIndex {
 	
 	@Override
 	public List<SearchResult> exactSearch(Set<String> stems) {
-		return lock.synchronizeWithFunction(super::exactSearch, stems, false);
+		return lock.syncFunction(super::exactSearch, stems, false);
 	}
 	
 	@Override
 	public List<SearchResult> partialSearch(Set<String> stems) {
-		return lock.synchronizeWithFunction(super::partialSearch, stems, false);
+		return lock.syncFunction(super::partialSearch, stems, false);
 	}
 	
 	@Override
 	public void attemptMergeWith(InvertedIndex other) {
-		lock.synchronizeWithConsumer(super::attemptMergeWith, other, true);
+		lock.syncConsumer(super::attemptMergeWith, other, true);
 		
 	}
 }
