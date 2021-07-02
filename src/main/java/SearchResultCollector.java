@@ -23,7 +23,9 @@ public interface SearchResultCollector {
 	 * @param path path
 	 * @throws IOException in case of IO Error
 	 */
-	void search(Path path) throws IOException;
+	void search(Path path) throws IOException; // TODO <--- this can be made a default implementation
+	
+	// TODO void search(String line)
 	
 	/**
 	 * Outputs the SearchResultCollector's search result map to a path
@@ -64,9 +66,21 @@ public interface SearchResultCollector {
 					if ( uniqueStems.isEmpty() || searchResultMap.containsKey(searchLine) ) return;
 					
 					searchResultMap.put(searchLine,  searchFunc.apply(uniqueStems) );
+					
+					// TODO Call method within loop
 				}
 			}
 		}
+		
+		/* TODO 
+		public void search(String line) {
+			TreeSet<String> uniqueStems = TextFileStemmer.uniqueStems(line);
+			String searchLine = String.join(" ",  uniqueStems);
+			if ( uniqueStems.isEmpty() || searchResultMap.containsKey(searchLine) ) return;
+
+			searchResultMap.put(searchLine,  searchFunc.apply(uniqueStems) );
+		}
+		*/
 		
 		@Override
 		public void outputToFile(Path path) throws IOException {
@@ -109,12 +123,24 @@ public interface SearchResultCollector {
 					queue.execute( new SearchLineTask(line) );
 
 				}
-				queue.join();
+				queue.join(); // TODO queue.finish();
 			}
+			
+			/* TODO 
+			SearchResultCollector.super.search(path);
+			queue.finish();
+			*/
 		}
+		
+		/* TODO 
+		public void search(String line) {
+			queue.execute( new SearchLineTask(line) );
+		}
+		*/
 		
 		@Override
 		public void outputToFile(Path path) throws IOException {
+			// TODO synchronized (searchResultMap)
 			SearchJsonWriter.asSearchResultMap(searchResultMap, path);
 		}
 		
@@ -124,7 +150,7 @@ public interface SearchResultCollector {
 		 * @author JRRed
 		 *
 		 */
-		private class SearchLineTask extends Thread {
+		private class SearchLineTask extends Thread { // TODO implements Runnable
 			/** line to search */
 			private final String line;
 			
