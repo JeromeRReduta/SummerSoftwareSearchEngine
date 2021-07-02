@@ -1,8 +1,8 @@
 import java.io.FileWriter;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -18,8 +18,8 @@ public class WebCrawler extends WordStemCollector {
 	
 	private final SimpleReadWriteLock lock;
 	
-	private final Set<URL> lookup;
-	private final List<URL> links;
+	private final Set<String> lookup;
+	private final List<String> links;
 	private final ThreadSafeInvertedIndex index;
 	private final WorkQueue queue;
 	private final int max;
@@ -107,16 +107,18 @@ public class WebCrawler extends WordStemCollector {
 				
 				
 					System.out.println("Links.size(): " + links.size());
-					if (links.size() == max) break;
+
 					
 					
 					
 					if (!lookup.contains(link) && HtmlFetcher.fetch(link, 3) != null) {
-						lookup.add(linkURL);
-						links.add(linkURL);
-					//	System.out.printf("links(%d): %s%n", links.size(), links);
+						lookup.add(link.toString());
+						links.add(link.toString());
+					
 						queue.execute(new CrawlURLTask(link.toString()));
 					}
+					System.out.printf("links(%d/%d): %s%n", links.size(), max, links);
+					if (links.size() == max) break;
 				}
 			}
 			catch (Exception e) {
@@ -144,6 +146,79 @@ public class WebCrawler extends WordStemCollector {
 		}
 		
 	}
+	
+	public class BetterCrawlURLTask extends Thread {
+		
+		private final String linkName;
+		// html may be null
+		private String html;
+		private int position;
+		private final InvertedIndex localIndex;
+		
+		
+		public BetterCrawlURLTask(String linkName, String html) {
+			this.linkName = linkName;
+			this.html = html;
+			this.position = 1;
+			this.localIndex = new InvertedIndex();
+		}
+		
+		@Override
+		public void run() {
+			if (html == null) return;
+			
+			html = HtmlCleaner.stripComments(html);
+			html = HtmlCleaner.stripBlockElements(html);
+			
+			List<URL> validLinks;
+			
+			try {
+				validLinks = LinkParser.getValidLinks(new URL(linkName), html);
+			}
+			catch (Exception e) {
+				System.out.println("Uhoh");
+				e.printStackTrace();
+				validLinks = Collections.emptyList();
+			}
+			
+			lock.writeLock().lock();
+			
+			try {
+				// TODO: add as long as it's unique - don't care about fetch(...) being null
+				for (URL link : validLinks) {
+					if (links.size() == max) break;
+					
+					if (!lookup.contains(link.toString())) {
+						lookup.add(link.toString());
+						links.add(link.toString());
+						Thread nextTask = new BetterCrawlURLTask( link.toString(), HtmlFetcher.fetch(link, 3) );
+						queue.execute(nextTask); // TODO: Take this out of loop? idk
+						//System.out.printf("links(%d/%d): %s%n", links.size(), max, links);
+						
+					}
+
+				}
+			}
+			finally {
+				lock.writeLock().unlock();
+			}
+			
+			html = HtmlCleaner.stripTags(html);// strip tags before strip entities, or else "<normal text, not tag>" will be counted and removed
+			html = HtmlCleaner.stripEntities(html);
+			String[] parsedHtml = TextParser.parse(html);
+			
+			Stemmer stemmer = new SnowballStemmer(SnowballStemmer.ALGORITHM.ENGLISH);
+			for (String word : parsedHtml) {
+				String stemmed = stemmer.stem( word.toLowerCase() ).toString();
+				if (stemmed.isBlank()) continue;
+				localIndex.add(stemmed, linkName, position++);
+			}
+			index.attemptMergeWith(localIndex); // TODO: Search for what happens to "PREFERENCES" link in javadocs
+		}
+	}
+		
+						
+						
 	
 	/* Steps:
 	 * 1. Fetch w/ 3 redirects
@@ -214,8 +289,23 @@ public class WebCrawler extends WordStemCollector {
 
 	}
 
+	// TODO: Add html here, make CrawlURLTask accept html instead, then only fetch() in one (write-locked) place
 	@Override
 	public void collectStemsFrom(String seed) throws IOException {
+		
+		String html = HtmlFetcher.fetch(seed, 3);
+		if (html == null) return;
+		
+		links.add(seed);
+		lookup.add(seed);
+		queue.execute(new BetterCrawlURLTask(seed, html));
+		queue.finish();
+		//System.out.printf("FINAL Links(%d): %s%n", links.size(), links);
+		
+		
+		/*
+		
+		
 		try {
 			URL linkURL = new URL(seed);
 			//lookup.add(linkURL); // TODO: Did I forgot to add this in the first place?
@@ -228,6 +318,7 @@ public class WebCrawler extends WordStemCollector {
 		catch (MalformedURLException e) {
 			System.err.println("Error - webcrawler - bad URL");
 		}
+		*/
 
 	}
 
