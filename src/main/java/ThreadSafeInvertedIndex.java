@@ -15,6 +15,9 @@ public class ThreadSafeInvertedIndex extends InvertedIndex {
 	/** lock used for synchronization */
 	private final SimpleReadWriteLock lock;
 	
+	/**
+	 * Constructor
+	 */
 	public ThreadSafeInvertedIndex() {
 		super();
 		this.lock = new SimpleReadWriteLock();
