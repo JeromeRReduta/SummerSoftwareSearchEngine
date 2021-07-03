@@ -21,6 +21,13 @@ public interface WordStemCollector {
 	 */
 	void collectStemsFrom(Path seed) throws IOException;
 	
+	/*
+	 * TODO If taking instance based approach:
+	 * 
+	 * 1 non-static method that tests if it is a directory
+	 * 1 non-static method that assumes it is a file and calls the static method
+	 */
+	
 	/**
 	 * Parses stems from one file and collects them to an InvertedIndex
 	 * @param path path
@@ -76,6 +83,16 @@ public interface WordStemCollector {
 		}
 	}
 	
+	/*
+	 * TODO Either fully static approach or back to the original instance-based approach
+	 * so we can do more code reuse.
+	 */
+	
+	/*
+	 * TODO By keeping these in the same class, other code that is single thread
+	 * only has to import quite a few extra classes it won't need. 
+	 */
+	
 	/**
 	 * Multi-threaded implementation of WordStemCollector
 	 * @author JRRed
@@ -119,7 +136,7 @@ public interface WordStemCollector {
 		 * @author JRRed
 		 *
 		 */
-		private class ParseFileTask extends Thread {
+		private class ParseFileTask extends Thread { // TODO implements Runnable
 			/** file path */
 			private final Path path;
 			
