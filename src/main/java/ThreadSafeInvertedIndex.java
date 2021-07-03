@@ -11,7 +11,6 @@ import java.util.Set;
  *
  */
 public class ThreadSafeInvertedIndex extends InvertedIndex {
-	
 	/** lock used for synchronization */
 	private final SimpleReadWriteLock lock;
 	
@@ -152,6 +151,5 @@ public class ThreadSafeInvertedIndex extends InvertedIndex {
 	@Override
 	public void attemptMergeWith(InvertedIndex other) {
 		lock.syncConsumer(super::attemptMergeWith, other, true);
-		
 	}
 }

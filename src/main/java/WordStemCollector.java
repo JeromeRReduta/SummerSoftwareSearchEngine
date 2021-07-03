@@ -9,7 +9,8 @@ import opennlp.tools.stemmer.Stemmer;
 import opennlp.tools.stemmer.snowball.SnowballStemmer;
 
 /**
- * Class whose sole responsibility is to collect word stems from a file and put them into an inverted index
+ * Class whose sole responsibility is to collect word stems from a file and put them into an inverted index.
+ * This class has a simple, single-threaded implementation provided by default.
  * @author JRRed
  *
  */
@@ -19,7 +20,23 @@ public interface WordStemCollector {
 	 * @param seed file or directory path
 	 * @throws IOException in case of IO Error
 	 */
-	void collectStemsFrom(Path seed) throws IOException;
+	//void collectStemsFrom(Path seed) throws IOException;
+	
+	default void collectStemsFrom(Path seed) throws IOException {
+		if (Files.isDirectory(seed)) { // Case: Directory - call parseFile() for each text file in directory
+			List<Path> filePaths = TextFileFinder.list(seed);
+			
+			for (Path filePath : filePaths) { // Case: one file - call parseFile() just for this file
+				parseFile(filePath);
+			}
+		}
+		else if (Files.isRegularFile(seed, java.nio.file.LinkOption.NOFOLLOW_LINKS)) {
+			parseFile(seed);
+		}
+	}
+	
+	void parseFile(Path path) throws IOException;
+	
 	
 	/*
 	 * TODO If taking instance based approach:
@@ -56,7 +73,7 @@ public interface WordStemCollector {
 	 * @author JRRed
 	 *
 	 */
-	public class SingleThreaded implements WordStemCollector {
+	public class Default implements WordStemCollector {
 		/** InvertedIndex to store word stems into */
 		private final InvertedIndex index;
 		
@@ -64,24 +81,16 @@ public interface WordStemCollector {
 		 * Constructor
 		 * @param index InvertedIndex
 		 */
-		public SingleThreaded(InvertedIndex index) {
+		public Default(InvertedIndex index) {
 			this.index = index;
 		}
 		
 		@Override
-		public void collectStemsFrom(Path seed) throws IOException {
-			if (Files.isDirectory(seed)) { // Case: Directory - call parseFile() for each text file in directory
-				List<Path> filePaths = TextFileFinder.list(seed);
-				
-				for (Path filePath : filePaths) { // Case: one file - call parseFile() just for this file
-					parseFile(filePath, index);
-				}
-			}
-			else if (Files.isRegularFile(seed, java.nio.file.LinkOption.NOFOLLOW_LINKS)) {
-				parseFile(seed, index);
-			}
+		public void parseFile(Path path) throws IOException {
+			WordStemCollector.parseFile(path, index);
 		}
 	}
+		
 	
 	/*
 	 * TODO Either fully static approach or back to the original instance-based approach
@@ -93,76 +102,5 @@ public interface WordStemCollector {
 	 * only has to import quite a few extra classes it won't need. 
 	 */
 	
-	/**
-	 * Multi-threaded implementation of WordStemCollector
-	 * @author JRRed
-	 *
-	 */
-	public class MultiThreaded implements WordStemCollector {
-		/** ThreadSafeInvertedIndex to store stems into */
-		private final ThreadSafeInvertedIndex threadSafe;
-		
-		/** Work queue */
-		private final WorkQueue queue;
-		
-		/**
-		 * Constructor
-		 * @param threadSafe thread safe inverted index
-		 * @param queue work queue
-		 */
-		public MultiThreaded(ThreadSafeInvertedIndex threadSafe, WorkQueue queue) {
-			this.threadSafe = threadSafe;
-			this.queue = queue;
-		}
-		
-		@Override
-		public void collectStemsFrom(Path seed) throws IOException {
-			if (Files.isDirectory(seed)) { // Case: Directory - call parseFile() for each text file in directory
-				List<Path> filePaths = TextFileFinder.list(seed);
-				
-				for (Path filePath : filePaths) { // Case: one file - call parseFile() just for this file
-					queue.execute( new ParseFileTask(filePath) );
-				}
-			}
-			else if (Files.isRegularFile(seed, java.nio.file.LinkOption.NOFOLLOW_LINKS)) {
-				queue.execute( new ParseFileTask(seed) );
-			}
-			queue.finish();
-		}
-		
-		/**
-		 * Class whose sole responsibility is to represent the task: "parse one file, collect the stems into a local index, and merge its contents
-		 * into a common index"
-		 * @author JRRed
-		 *
-		 */
-		private class ParseFileTask extends Thread { // TODO implements Runnable
-			/** file path */
-			private final Path path;
-			
-			/** local InvertedIndex to store stems into */
-			private final InvertedIndex localIndex;
-			
-			/**
-			 * Constructor
-			 * @param path path
-			 */
-			private ParseFileTask(Path path) {
-				this.path = path;
-				this.localIndex = new InvertedIndex();
-			}
-			
-			@Override
-			public void run() {
-				try {
-					parseFile(path, localIndex);
-					threadSafe.attemptMergeWith(localIndex);
-				}
-				catch (Exception e) {
-					System.err.println("ERROR - WordStemCollector.ParseFileTask");
-				}
-			}
-		}
-		
-	}
+
 }

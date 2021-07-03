@@ -30,7 +30,7 @@ public class SearchEngine {
 			ThreadSafeInvertedIndex threadSafe = new ThreadSafeInvertedIndex();
 			this.queue = new WorkQueue(argMap.getInteger("-threads", WorkQueue.DEFAULT));
 			this.index = threadSafe;
-			this.stemCollector = new WordStemCollector.MultiThreaded(threadSafe, queue); 
+			this.stemCollector = new MultiThreadedStemCollector(threadSafe, queue); 
 			
 			this.searcher = new SearchResultCollector.MultiThreaded(
 					argMap.hasFlag("-exact") ? threadSafe::exactSearch : threadSafe::partialSearch,
@@ -39,7 +39,7 @@ public class SearchEngine {
 		else {
 			this.queue = null;
 			this.index = new InvertedIndex();
-			this.stemCollector = new WordStemCollector.SingleThreaded(index);
+			this.stemCollector = new WordStemCollector.Default(index);
 			
 			this.searcher = new SearchResultCollector.SingleThreaded(
 					argMap.hasFlag("-exact") ? this.index::exactSearch : this.index::partialSearch);

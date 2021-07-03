@@ -150,7 +150,7 @@ public interface SearchResultCollector {
 		 * @author JRRed
 		 *
 		 */
-		private class SearchLineTask extends Thread { // TODO implements Runnable
+		private class SearchLineTask implements Runnable {
 			/** line to search */
 			private final String line;
 			
