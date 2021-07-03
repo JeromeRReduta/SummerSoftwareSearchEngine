@@ -10,7 +10,7 @@ import opennlp.tools.stemmer.snowball.SnowballStemmer;
 
 /**
  * Class whose sole responsibility is to collect word stems from a file and put them into an inverted index.
- * This class has a simple, single-threaded implementation provided by default.
+ * This class has a simple, single-threaded implementation that has been provided by default.
  * @author JRRed
  *
  */
@@ -90,17 +90,4 @@ public interface WordStemCollector {
 			WordStemCollector.parseFile(path, index);
 		}
 	}
-		
-	
-	/*
-	 * TODO Either fully static approach or back to the original instance-based approach
-	 * so we can do more code reuse.
-	 */
-	
-	/*
-	 * TODO By keeping these in the same class, other code that is single thread
-	 * only has to import quite a few extra classes it won't need. 
-	 */
-	
-
 }

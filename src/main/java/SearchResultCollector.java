@@ -12,7 +12,7 @@ import java.util.function.Function;
 
 /**
  * Class whose sole responsibility is to represent something that searches an InvertedIndex and collects its results into a list,
- * which can then be output into a file. This class has a single-threaded and multi-threaded implementation.
+ * which can then be output into a file. This class has a simple, single-threaded, implementation that has been provided by default.
  * @author JRRed
  *
  */
@@ -23,7 +23,17 @@ public interface SearchResultCollector {
 	 * @param path path
 	 * @throws IOException in case of IO Error
 	 */
-	void search(Path path) throws IOException; // TODO <--- this can be made a default implementation
+	default void search(Path path) throws IOException { // TODO <--- this can be made a default implementation
+		try (BufferedReader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
+			String line;
+			
+			while ( (line = reader.readLine()) != null ) {
+				searchLine(line);
+			}
+		}
+	}
+	
+	void searchLine(String line);
 	
 	// TODO void search(String line)
 	
@@ -39,7 +49,7 @@ public interface SearchResultCollector {
 	 * @author JRRed
 	 *
 	 */
-	public class SingleThreaded implements SearchResultCollector {
+	public class Default implements SearchResultCollector {
 		/** map of search results, organized by their original query set */
 		private final Map<String, Collection<InvertedIndex.SearchResult>> searchResultMap;
 		
@@ -50,37 +60,19 @@ public interface SearchResultCollector {
 		 * Constructor
 		 * @param searchFunc search function to use
 		 */
-		public SingleThreaded(Function<Set<String>, Collection<InvertedIndex.SearchResult>> searchFunc) {
+		public Default(Function<Set<String>, Collection<InvertedIndex.SearchResult>> searchFunc) {
 			this.searchResultMap = new TreeMap<>();
 			this.searchFunc = searchFunc;
 		}
 		
 		@Override
-		public void search(Path path) throws IOException {
-			try (BufferedReader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
-				String line;
-				
-				while ( (line = reader.readLine()) != null ) {
-					TreeSet<String> uniqueStems = TextFileStemmer.uniqueStems(line);
-					String searchLine = String.join(" ",  uniqueStems);
-					if ( uniqueStems.isEmpty() || searchResultMap.containsKey(searchLine) ) return;
-					
-					searchResultMap.put(searchLine,  searchFunc.apply(uniqueStems) );
-					
-					// TODO Call method within loop
-				}
-			}
-		}
-		
-		/* TODO 
-		public void search(String line) {
+		public void searchLine(String line) {
 			TreeSet<String> uniqueStems = TextFileStemmer.uniqueStems(line);
 			String searchLine = String.join(" ",  uniqueStems);
 			if ( uniqueStems.isEmpty() || searchResultMap.containsKey(searchLine) ) return;
-
+			
 			searchResultMap.put(searchLine,  searchFunc.apply(uniqueStems) );
 		}
-		*/
 		
 		@Override
 		public void outputToFile(Path path) throws IOException {
@@ -88,95 +80,5 @@ public interface SearchResultCollector {
 		}
 	}
 	
-	/**
-	 * Multi-threaded implementation of SearchResultCollector
-	 * @author JRRed
-	 *
-	 */
-	public class MultiThreaded implements SearchResultCollector {
-		/** map of search results, organized by their original query set */
-		private final Map<String, Collection<InvertedIndex.SearchResult>> searchResultMap;
-		
-		/** Search function to use */
-		private final Function<Set<String>, Collection<InvertedIndex.SearchResult>> searchFunc;
-		
-		/** WorkQueue */
-		private final WorkQueue queue;
-		
-		/**
-		 * Constructor
-		 * @param searchFunc search function to use
-		 * @param queue work queue
-		 */
-		public MultiThreaded(Function<Set<String>, Collection<InvertedIndex.SearchResult>> searchFunc, WorkQueue queue) {
-			this.searchResultMap = new TreeMap<>();
-			this.searchFunc = searchFunc;
-			this.queue = queue;
-		}
-		
-		@Override
-		public void search(Path path) throws IOException {
-			try (BufferedReader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
-				String line;
-				
-				while ( (line = reader.readLine()) != null ) {
-					queue.execute( new SearchLineTask(line) );
 
-				}
-				queue.join(); // TODO queue.finish();
-			}
-			
-			/* TODO 
-			SearchResultCollector.super.search(path);
-			queue.finish();
-			*/
-		}
-		
-		/* TODO 
-		public void search(String line) {
-			queue.execute( new SearchLineTask(line) );
-		}
-		*/
-		
-		@Override
-		public void outputToFile(Path path) throws IOException {
-			// TODO synchronized (searchResultMap)
-			SearchJsonWriter.asSearchResultMap(searchResultMap, path);
-		}
-		
-		/**
-		 * Class whose sole responsibility is to represent the task: "Search the given ThreadSafeInvertedIndex,
-		 * using the given line of queries, and put the results into the given search result map.
-		 * @author JRRed
-		 *
-		 */
-		private class SearchLineTask implements Runnable {
-			/** line to search */
-			private final String line;
-			
-			/**
-			 * Constructor
-			 * @param line line to search
-			 */
-			private SearchLineTask(String line) {
-				this.line = line;
-			}
-			
-			@Override
-			public void run() {
-				TreeSet<String> uniqueStems = TextFileStemmer.uniqueStems(line);
-				String searchLine = String.join(" ",  uniqueStems);
-				
-				synchronized(searchResultMap) {
-					if ( uniqueStems.isEmpty() || searchResultMap.containsKey(searchLine) ) return;
-				}
-				
-				Collection<InvertedIndex.SearchResult> results = searchFunc.apply(uniqueStems);
-				
-				synchronized(searchResultMap) {
-					searchResultMap.put(searchLine,  results);
-				}
-			}
-		}
-	}
 }
