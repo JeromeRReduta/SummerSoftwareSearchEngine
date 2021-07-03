@@ -23,7 +23,7 @@ public interface SearchResultCollector {
 	 * @param path path
 	 * @throws IOException in case of IO Error
 	 */
-	default void search(Path path) throws IOException { // TODO <--- this can be made a default implementation
+	default void search(Path path) throws IOException {
 		try (BufferedReader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
 			String line;
 			
@@ -33,9 +33,12 @@ public interface SearchResultCollector {
 		}
 	}
 	
+	/**
+	 * Searches a given index, using a given line of queries, with a given search function,
+	 * and saves results to a given search result map
+	 * @param line line of queries
+	 */
 	void searchLine(String line);
-	
-	// TODO void search(String line)
 	
 	/**
 	 * Outputs the SearchResultCollector's search result map to a path
@@ -79,6 +82,4 @@ public interface SearchResultCollector {
 			SearchJsonWriter.asSearchResultMap(searchResultMap, path);
 		}
 	}
-	
-
 }

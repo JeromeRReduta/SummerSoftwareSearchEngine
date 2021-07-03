@@ -25,7 +25,7 @@ public class MultiThreadedStemCollector implements WordStemCollector {
 	
 	@Override
 	public void collectStemsFrom(Path seed) throws IOException {
-		WordStemCollector.super.collectStemsFrom(seed);
+		WordStemCollector.super.collectStemsFrom(seed); // WordStemCollector.super.methodName calls the static methodName() from WordStemCollector, the "super" of this class's interface
 		queue.finish();
 	}
 	
@@ -67,5 +67,4 @@ public class MultiThreadedStemCollector implements WordStemCollector {
 			}
 		}
 	}
-	
 }

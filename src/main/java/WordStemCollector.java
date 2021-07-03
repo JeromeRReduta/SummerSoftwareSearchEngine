@@ -16,12 +16,10 @@ import opennlp.tools.stemmer.snowball.SnowballStemmer;
  */
 public interface WordStemCollector {
 	/**
-	 * Collects stems from a file or directory path and stores them in its invertedIndex
+	 * Collects stems from a file or directory path and stores them in its InvertedIndex
 	 * @param seed file or directory path
 	 * @throws IOException in case of IO Error
 	 */
-	//void collectStemsFrom(Path seed) throws IOException;
-	
 	default void collectStemsFrom(Path seed) throws IOException {
 		if (Files.isDirectory(seed)) { // Case: Directory - call parseFile() for each text file in directory
 			List<Path> filePaths = TextFileFinder.list(seed);
@@ -35,15 +33,12 @@ public interface WordStemCollector {
 		}
 	}
 	
-	void parseFile(Path path) throws IOException;
-	
-	
-	/*
-	 * TODO If taking instance based approach:
-	 * 
-	 * 1 non-static method that tests if it is a directory
-	 * 1 non-static method that assumes it is a file and calls the static method
+	/**
+	 * Collects stems from one file and stores them in its InvertedIndex
+	 * @param path file path
+	 * @throws IOException in case of IO Error
 	 */
+	void parseFile(Path path) throws IOException;
 	
 	/**
 	 * Parses stems from one file and collects them to an InvertedIndex
@@ -69,7 +64,7 @@ public interface WordStemCollector {
 	}
 	
 	/**
-	 * Single-threaded implementation of WordStemCollector
+	 * Simple, single-threaded implementation of WordStemCollector.
 	 * @author JRRed
 	 *
 	 */
