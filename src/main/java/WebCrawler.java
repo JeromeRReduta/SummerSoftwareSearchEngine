@@ -14,8 +14,6 @@ import opennlp.tools.stemmer.snowball.SnowballStemmer;
  *
  */
 public class WebCrawler implements StemCrawler {
-	
-	
 	/** A set used to keep track of unique links */
 	private final Set<String> lookup;
 	
@@ -58,7 +56,7 @@ public class WebCrawler implements StemCrawler {
 				lookup.add(linkName);
 				links.add(linkName);
 				
-				queue.execute(new CrawlURLTask(linkName, HtmlFetcher.fetch(linkName, 3)));
+				queue.execute(new CrawlURLTask(linkName));
 			}
 		}
 	}
@@ -69,29 +67,24 @@ public class WebCrawler implements StemCrawler {
 	 *
 	 */
 	public class CrawlURLTask implements Runnable {
-		
 		/** link name */
 		private final String linkName;
-		
-		/** html block */
-		private String html;
-	
+
 		/** Inverted Index */
 		private final InvertedIndex localIndex;
 		
 		/**
 		 * Constructor
 		 * @param linkName link name
-		 * @param html html
 		 */
-		public CrawlURLTask(String linkName, String html) {
+		public CrawlURLTask(String linkName) {
 			this.linkName = linkName;
-			this.html = html;
 			this.localIndex = new InvertedIndex();
 		}
 		
 		@Override
 		public void run() {
+			String html = HtmlFetcher.fetch(linkName, 3);
 			if (html == null) return;
 			html = HtmlCleaner.stripComments(html);
 			html = HtmlCleaner.stripBlockElements(html);
@@ -104,7 +97,7 @@ public class WebCrawler implements StemCrawler {
 				System.out.println("Uhoh - WebCrawlerTask");
 			}
 			
-			html = HtmlCleaner.stripTags(html);// strip tags before strip entities, or else "<normal text, not tag>" will be counted and removed
+			html = HtmlCleaner.stripTags(html); // strip tags before strip entities, or else "<normal text, not tag>" will be counted and removed
 			html = HtmlCleaner.stripEntities(html);
 			String[] parsedHtml = TextParser.parse(html);
 			
@@ -125,9 +118,8 @@ public class WebCrawler implements StemCrawler {
 		
 		links.add(seed);
 		lookup.add(seed);
-		queue.execute(new CrawlURLTask(seed, html));
+		queue.execute(new CrawlURLTask(seed));
 		
 		queue.finish();
-		
 	}
 }
