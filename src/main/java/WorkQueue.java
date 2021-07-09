@@ -143,7 +143,7 @@ public class WorkQueue {
 		}
 		catch (InterruptedException e) {
 			System.err.println("Warning: Work queue interrupted while joining.");
-			System.err.println(e);
+			e.printStackTrace();
 			log.catching(Level.DEBUG, e);
 			Thread.currentThread().interrupt();
 		}
