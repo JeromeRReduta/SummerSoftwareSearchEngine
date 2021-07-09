@@ -150,10 +150,11 @@ public class SearchEngineServlet extends HttpServlet{
 			Instant start = Instant.now();
 			searchEngine.getStems();
 			searchEngine.searchFrom(safeInput);
+			searchEngine.joinQueue();
 			printPTag(out, "RESULTS: \n" + searchEngine.outputResultsToWeb(start), indent);
 		}
 		catch (Exception e) {
-			log.catching(Level.WARN, e);
+			log.catching(Level.ERROR, e);
 		}
 	}
 }
