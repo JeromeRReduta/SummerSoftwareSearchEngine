@@ -18,7 +18,6 @@ import jakarta.servlet.http.HttpServletResponse;
  *
  */
 public class SearchEngineServlet extends HttpServlet{
-
 	/** Unused ID */
 	private static final long serialVersionUID = 1L;
 
@@ -107,8 +106,7 @@ public class SearchEngineServlet extends HttpServlet{
 		out.printf("%s</style>%n", "\t".repeat(base + 2));
 	}
 	
-	// Found this for dark mode checkbox: https://stackoverflow.com/questions/36546775/html-checkboxes-keep-checked-after-refresh/36547079
-	// Checkbox: https://www.w3schools.com/tags/att_input_type_checkbox.asp
+	// 
 	/**
 	 * Prints a toggle button based on the request
 	 * @param request HttpServletRequest
@@ -116,6 +114,9 @@ public class SearchEngineServlet extends HttpServlet{
 	 * @param parameter value used
 	 * @param buttonName name to output to the button
 	 * @param indent base indent level
+	 * 
+	 * @note Found this for dark mode checkbox: https://stackoverflow.com/questions/36546775/html-checkboxes-keep-checked-after-refresh/36547079
+		Checkbox: https://www.w3schools.com/tags/att_input_type_checkbox.asp
 	 */
 	private void printToggleButton(HttpServletRequest request, PrintWriter out, String parameter, String buttonName, int indent) {
 		String text = request.getParameter(parameter) != null
@@ -134,26 +135,25 @@ public class SearchEngineServlet extends HttpServlet{
 	 */
 	private void printSearchResults(HttpServletRequest request, PrintWriter out, int indent) {
 		String safeInput = StringEscapeUtils.escapeHtml4( request.getParameter(QUERY) );
+		if ( safeInput.isBlank() ) return;
 		
-		if (!safeInput.isBlank()) {
-			printPTag(out, "Query is: " + safeInput, indent);
-			String args = "-html " + defaultSeed + " -max 10 " + " -threads 5" + " -query " + safeInput;
-			
-			if (request.getParameter(EXACT) != null) {
-				args += " -exact";
-			}
-			
-			SearchEngine searchEngine = SearchEngine.Factory.create( new ArgumentMap( args.split(" ") ) );
-			
-			try {
-				Instant start = Instant.now();
-				searchEngine.getStems();
-				searchEngine.searchFrom(safeInput);
-				printPTag(out, "RESULTS: \n" + searchEngine.outputResultsToWeb(start), indent);
-			}
-			catch (Exception e) {
-				log.catching(Level.WARN, e);
-			}
+		printPTag(out, "Query is: " + safeInput, indent);
+		String args = "-html " + defaultSeed + " -max 10 " + " -threads 5" + " -query " + safeInput;
+		
+		if (request.getParameter(EXACT) != null) {
+			args += " -exact";
+		}
+		
+		SearchEngine searchEngine = SearchEngine.Factory.create( new ArgumentMap( args.split(" ") ) );
+		
+		try {
+			Instant start = Instant.now();
+			searchEngine.getStems();
+			searchEngine.searchFrom(safeInput);
+			printPTag(out, "RESULTS: \n" + searchEngine.outputResultsToWeb(start), indent);
+		}
+		catch (Exception e) {
+			log.catching(Level.WARN, e);
 		}
 	}
 }
