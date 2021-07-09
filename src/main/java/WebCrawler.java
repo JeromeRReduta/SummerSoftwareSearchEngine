@@ -1,5 +1,6 @@
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -13,75 +14,84 @@ import opennlp.tools.stemmer.snowball.SnowballStemmer;
  *
  */
 public class WebCrawler implements StemCrawler {
+	
+	
 	/** A set used to keep track of unique links */
 	private final Set<String> lookup;
 	
-	/** Thread-safe Inverted Index */
+	/** list of links */
+	private final List<String> links;
+	
+	/** Thread-Safe Inverted Index */
 	private final ThreadSafeInvertedIndex index;
 	
-	/** Work queue */
+	/** work queue */
 	private final WorkQueue queue;
 	
-	/** Max num of unique URLS to crawl */
+	/** max num of urls to crawl */
 	private final int max;
 	
 	/**
 	 * Constructor
-	 * @param index Thread-Safe InvertedIndex
-	 * @param queue work queue
-	 * @param max max num of unique urls to crawl
+	 * @param index index
+	 * @param queue queue
+	 * @param max max num of urls to crawl
 	 */
 	public WebCrawler(ThreadSafeInvertedIndex index, WorkQueue queue, int max) {
 		this.index = index;
 		this.max = max;
 		this.queue = queue;
+		this.links = new ArrayList<>();
 		this.lookup = new HashSet<>();
 	}
 	
 	/**
-	 * Given a list of URLs, attempts to add each unique URL to the lookup set, until either we get through the list or we reach the max num of links
-	 * @param validLinks list of valid URLs
+	 * Adds unique links to queue
+	 * @param validLinks list of links
 	 */
 	public synchronized void crawlUniqueLinks(List<URL> validLinks) {
 		for (URL link : validLinks) {
-			if ( lookup.size() == max ) break;
+			if (links.size() == max) break;
+			String linkName = link.toString();
 
-			if ( !lookup.contains( link.toString() ) ) {
-				lookup.add( link.toString() );
-				queue.execute( new CrawlURLTask( link.toString(), HtmlFetcher.fetch(link, 3) ) );
+			if (!lookup.contains(linkName)) {
+				lookup.add(linkName);
+				links.add(linkName);
+				
+				queue.execute( new CrawlURLTask(linkName) );
 			}
 		}
 	}
 	
 	/**
-	 * Represents the task: "Parse html, then add unique links (up to the max number of links), then parse the html more,
-	 * then add the parsed html into the local index, then merge the results of the local index into the common one.
+	 * Represents task: "Crawl URLs for stems, starting from seed URL, until the max num of URLs have been reached
 	 * @author JRRed
 	 *
 	 */
 	public class CrawlURLTask implements Runnable {
-		/** link string */
+		
+		/** link name */
 		private final String linkName;
 		
-		/** Entire html block, saved in memory */
+		/** html block */
 		private String html;
-		
-		/** An InvertedIndex to store results into */
+	
+		/** Inverted Index */
 		private final InvertedIndex localIndex;
 		
 		/**
 		 * Constructor
 		 * @param linkName link name
-		 * @param html html block
+		 * @param html html
 		 */
-		public CrawlURLTask(String linkName, String html) {
+		public CrawlURLTask(String linkName) {
 			this.linkName = linkName;
-			this.html = html;
 			this.localIndex = new InvertedIndex();
 		}
 		
 		@Override
 		public void run() {
+			String html = HtmlFetcher.fetch(linkName, 3);
 			if (html == null) return;
 			html = HtmlCleaner.stripComments(html);
 			html = HtmlCleaner.stripBlockElements(html);
@@ -98,8 +108,8 @@ public class WebCrawler implements StemCrawler {
 			html = HtmlCleaner.stripEntities(html);
 			String[] parsedHtml = TextParser.parse(html);
 			
-			Stemmer stemmer = new SnowballStemmer(SnowballStemmer.ALGORITHM.ENGLISH);
 			int position = 1;
+			Stemmer stemmer = new SnowballStemmer(SnowballStemmer.ALGORITHM.ENGLISH);
 			for (String word : parsedHtml) {
 				String stemmed = stemmer.stem( word.toLowerCase() ).toString();
 				localIndex.add(stemmed, linkName, position++);
@@ -113,9 +123,11 @@ public class WebCrawler implements StemCrawler {
 		String html = HtmlFetcher.fetch(seed, 3);
 		if (html == null) return;
 		
+		links.add(seed);
 		lookup.add(seed);
-		queue.execute(new CrawlURLTask(seed, html));
+		queue.execute(new CrawlURLTask(seed));
 		
 		queue.finish();
+		
 	}
 }
