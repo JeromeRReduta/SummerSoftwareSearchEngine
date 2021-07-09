@@ -20,18 +20,16 @@ public interface WordStemCollector {
 	 * @param seed file or directory path
 	 * @throws IOException in case of IO Error
 	 */
-	default void collectStemsFrom(String seed) throws IOException {
-		Path seedPath = Path.of(seed);
-		
-		if (Files.isDirectory(seedPath)) { // Case: Directory - call parseFile() for each text file in directory
-			List<Path> filePaths = TextFileFinder.list(seedPath);
+	default void collectStemsFrom(Path seed) throws IOException {
+		if (Files.isDirectory(seed)) { // Case: Directory - call parseFile() for each text file in directory
+			List<Path> filePaths = TextFileFinder.list(seed);
 			
 			for (Path filePath : filePaths) { // Case: one file - call parseFile() just for this file
 				parseFile(filePath);
 			}
 		}
-		else if (Files.isRegularFile(seedPath, java.nio.file.LinkOption.NOFOLLOW_LINKS)) {
-			parseFile(seedPath);
+		else if (Files.isRegularFile(seed, java.nio.file.LinkOption.NOFOLLOW_LINKS)) {
+			parseFile(seed);
 		}
 	}
 	

@@ -80,47 +80,6 @@ public class SearchEngine {
 	}
 	
 	/**
-	 * Constructor
-	 * @param argMap Argument map for parsing arguments
-	 * @note Putting argMap here and not just the exact boolean for future-proofing for P3 and P4, when I will also have to deal with threads and crawling maybe
-	 */
-	public SearchEngine(ArgumentMap argMap) {
-		if (argMap.hasFlag("-html")) {
-			ThreadSafeInvertedIndex threadSafe = new ThreadSafeInvertedIndex();
-			this.queue = new WorkQueue(argMap.getInteger("-threads", WorkQueue.DEFAULT));
-			this.index = threadSafe;
-			this.seed = argMap.getString("-html");
-			
-			this.stemCollector = new WebCrawler(threadSafe, queue, argMap.getInteger("-max",  1));
-			this.searcher = new MultiThreadedSearchCollector(
-					argMap.hasFlag("-exact") ? threadSafe::exactSearch : threadSafe::partialSearch,
-					queue);
-			
-		}
-		else if (argMap.hasFlag("-threads")) {
-			ThreadSafeInvertedIndex threadSafe = new ThreadSafeInvertedIndex();
-			this.queue = new WorkQueue(argMap.getInteger("-threads", WorkQueue.DEFAULT));
-			this.index = threadSafe;
-			this.seed = argMap.getString("-text");
-			
-			this.stemCollector = new MultiThreadedStemCollector(threadSafe, queue); 
-			
-			this.searcher = new MultiThreadedSearchCollector(
-					argMap.hasFlag("-exact") ? threadSafe::exactSearch : threadSafe::partialSearch,
-					queue);
-		}
-		else {
-			this.queue = null;
-			this.index = new InvertedIndex();
-			this.seed = argMap.getString("-text");
-			this.stemCollector = new WordStemCollector.Default(index);
-			
-			this.searcher = new SearchResultCollector.Default(
-					argMap.hasFlag("-exact") ? this.index::exactSearch : this.index::partialSearch);
-		}
-	}
-	
-	/**
 	 * Parses files from a directory or file path
 	 * @param seed a directory or file path
 	 * @throws IOException in case of IO Error

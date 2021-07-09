@@ -104,6 +104,8 @@ public class Driver {
 				System.err.printf("Error: Could not output search result data to file: %s%n", results);
 			}
 		}
+		
+		searchEngine.joinQueue();
 
 		searchEngine.joinQueue();
 		// calculate time elapsed and output

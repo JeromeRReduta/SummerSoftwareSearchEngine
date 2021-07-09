@@ -83,12 +83,12 @@ public class WorkQueue {
 	}
 	
 	/** Safely increments pending */
-	public synchronized void incrementPending() { // TODO private
+	private synchronized void incrementPending() {
 		pending++;
 	}
 	
 	/** Safely decrements pending. If after decrementing, pending == 0, notifies all waiting threasd */
-	public synchronized void decrementPending() { // TODO private
+	private synchronized void decrementPending() {
 		pending--;
 		if (pending == 0) {
 			this.notifyAll();
@@ -169,7 +169,6 @@ public class WorkQueue {
 		 */
 		public Worker() {
 			setName("Worker" + getName());
-			//incrementPending(); // ok to put pending in execute() & not constructor?
 		}
 
 		@Override
