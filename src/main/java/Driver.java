@@ -147,10 +147,8 @@ public class Driver {
 		}
 		
 		searchEngine.joinQueue();
-
-		searchEngine.joinQueue();
-		// calculate time elapsed and output
 		
+		// calculate time elapsed and output
 		Duration elapsed = Duration.between(start, Instant.now());
 		double seconds = (double) elapsed.toMillis() / Duration.ofSeconds(1).toMillis();
 		System.out.printf("Elapsed: %f seconds%n", seconds);
