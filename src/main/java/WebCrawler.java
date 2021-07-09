@@ -58,7 +58,7 @@ public class WebCrawler implements StemCrawler {
 				lookup.add(linkName);
 				links.add(linkName);
 				
-				queue.execute( new CrawlURLTask(linkName) );
+				queue.execute(new CrawlURLTask(linkName));
 			}
 		}
 	}
@@ -72,9 +72,6 @@ public class WebCrawler implements StemCrawler {
 		
 		/** link name */
 		private final String linkName;
-		
-		/** html block */
-		private String html;
 	
 		/** Inverted Index */
 		private final InvertedIndex localIndex;
@@ -82,7 +79,6 @@ public class WebCrawler implements StemCrawler {
 		/**
 		 * Constructor
 		 * @param linkName link name
-		 * @param html html
 		 */
 		public CrawlURLTask(String linkName) {
 			this.linkName = linkName;
