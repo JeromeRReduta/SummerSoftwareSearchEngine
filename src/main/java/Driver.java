@@ -27,22 +27,24 @@ public class Driver {
 
 		// Creating objects
 		ArgumentMap argMap = new ArgumentMap(args);
-		SearchEngine searchEngine = new SearchEngine(argMap);
+		SearchEngine searchEngine = SearchEngine.Factory.create(argMap);
 		
 		
-		if (argMap.hasFlag("-text") || argMap.hasFlag("-html")) { // Collect stems from file(s): argMap.getPath("-text") and store in invertedIndex
-			final String text = argMap.hasFlag("-html") ? argMap.getString("-html") : argMap.getString("-text");
-			System.out.println("TEXT: " + text);
-			try {
-				searchEngine.parseFilesFrom(text);
-			}
-			catch (NullPointerException e) {
-				System.err.printf("Error: path is missing or invalid: %s%n", text);
-			}
-			catch (Exception e) {
-				System.err.printf("Error: Could not build inverted index from path: %s%n", text);
-			}
-			
+		/* turn this section into searchEngine.getStems():
+		 * have a couple different search engines:
+		 * 
+		 * Single-threaded w/ String seed (turned to Path)
+		 * Multi-threaded w/ String seed (turned to Path)
+		 * Web search engine w/ String seed (turned to URL)
+		 * 
+		 * Then when running the searchEngine funcs, just change String to Path/URL as needed
+		 * 
+		 */
+		try {
+			searchEngine.getStems();
+		}
+		catch (Exception e) {
+			System.err.printf( "Could not get stems from path: %s%n", searchEngine.getSeed() );
 		}
 		
 		
@@ -103,6 +105,7 @@ public class Driver {
 			}
 		}
 
+		searchEngine.joinQueue();
 		// calculate time elapsed and output
 		Duration elapsed = Duration.between(start, Instant.now());
 		double seconds = (double) elapsed.toMillis() / Duration.ofSeconds(1).toMillis();

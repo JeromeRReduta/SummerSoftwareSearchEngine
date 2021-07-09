@@ -1,41 +1,70 @@
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 
 /**
- * Multi-threaded implementation of WordStemCollector. Uses a work queue.
+ * Multi-threaded implementation of WordStemCollector
  * @author JRRed
  *
  */
-public class MultiThreadedStemCollector extends WordStemCollector {
-	/** work queue */
+public class MultiThreadedStemCollector implements WordStemCollector {
+	/** ThreadSafeInvertedIndex to store stems into */
+	private final ThreadSafeInvertedIndex threadSafe;
+	
+	/** Work queue */
 	private final WorkQueue queue;
 	
 	/**
 	 * Constructor
-	 * @param threadSafe thread-safe index
+	 * @param threadSafe thread safe inverted index
 	 * @param queue work queue
 	 */
 	public MultiThreadedStemCollector(ThreadSafeInvertedIndex threadSafe, WorkQueue queue) {
-		super(threadSafe);
+		this.threadSafe = threadSafe;
 		this.queue = queue;
 	}
 	
 	@Override
 	public void collectStemsFrom(String seed) throws IOException {
-		Path path = Path.of(seed);
-		if (Files.isDirectory(path)) { // Case: Directory - call parseFile() for each text file in directory
-			List<Path> filePaths = TextFileFinder.list(path);
-			
-			for (Path filePath : filePaths) { // Case: one file - call parseFile() just for this file
-				queue.execute( new ParseFileTask(filePath) );
-			}
-		}
-		else if (Files.isRegularFile(path, java.nio.file.LinkOption.NOFOLLOW_LINKS)) {
-			queue.execute( new ParseFileTask(path) );
+		WordStemCollector.super.collectStemsFrom(seed); // WordStemCollector.super.methodName calls the static methodName() from WordStemCollector, the "super" of this class's interface
+		queue.finish();
+	}
+	
+	@Override
+	public void parseFile(Path path) throws IOException {
+		queue.execute( new ParseFileTask(path) );
+	}
+	
+	/**
+	 * Class whose sole responsibility is to represent the task: "parse one file, collect the stems into a local index, and merge its contents
+	 * into a common index"
+	 * @author JRRed
+	 *
+	 */
+	private class ParseFileTask implements Runnable { 
+		/** file path */
+		private final Path path;
+		
+		/** local InvertedIndex to store stems into */
+		private final InvertedIndex localIndex;
+		
+		/**
+		 * Constructor
+		 * @param path path
+		 */
+		private ParseFileTask(Path path) {
+			this.path = path;
+			this.localIndex = new InvertedIndex();
 		}
 		
-		queue.finish();
+		@Override
+		public void run() {
+			try {
+				WordStemCollector.parseFile(path, localIndex);
+				threadSafe.attemptMergeWith(localIndex);
+			}
+			catch (Exception e) {
+				System.err.println("ERROR - WordStemCollector.ParseFileTask");
+			}
+		}
 	}
 }

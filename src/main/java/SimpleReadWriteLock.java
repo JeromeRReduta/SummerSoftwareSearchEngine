@@ -65,12 +65,9 @@ public class SimpleReadWriteLock {
 	public SimpleReadWriteLock() {
 		readerLock = new SimpleReadLock();
 		writerLock = new SimpleWriteLock();
-
 		lock = new Object();
-
 		readers = 0;
 		writers = 0;
-
 		activeWriter = null;
 	}
 	
@@ -81,10 +78,8 @@ public class SimpleReadWriteLock {
 	 * @param write true: method is a write operation; false: method is a read operation
 	 * @return the output of the supplier method
 	 */
-	public <O> O synchronizeWithSupplier(Supplier<O> method, boolean write) {
-		
+	public <O> O syncSupplier(Supplier<O> method, boolean write) {
 		SimpleLock lock = write ? writerLock : readerLock;
-		
 		lock.lock();
 		try {
 			return method.get();
@@ -92,7 +87,6 @@ public class SimpleReadWriteLock {
 		finally {
 			lock.unlock();
 		}
-		
 	}
 	
 	/**
@@ -104,10 +98,8 @@ public class SimpleReadWriteLock {
 	 * @param write true: method is a write operation; false: method is a read operation
 	 * @return the output of the function method
 	 */
-	public <I, O> O synchronizeWithFunction(Function<I, O> method, I input, boolean write) {
-		
+	public <I, O> O syncFunction(Function<I, O> method, I input, boolean write) {
 		SimpleLock lock = write ? writerLock : readerLock;
-		
 		lock.lock();
 		try {
 			return method.apply(input);
@@ -115,7 +107,6 @@ public class SimpleReadWriteLock {
 		finally {
 			lock.unlock();
 		}
-		
 	}
 	
 	/**
@@ -129,10 +120,8 @@ public class SimpleReadWriteLock {
 	 * @param write true: method is a write operation; false: method is a read operation
 	 * @return the output of the function method
 	 */
-	public <I, J, O> O synchronizeWithBiFunction(BiFunction<I, J, O> method, I input1, J input2, boolean write) {
-		
+	public <I, J, O> O syncBiFunction(BiFunction<I, J, O> method, I input1, J input2, boolean write) {
 		SimpleLock lock = write ? writerLock : readerLock;
-		
 		lock.lock();
 		try {
 			return method.apply(input1, input2);
@@ -140,7 +129,6 @@ public class SimpleReadWriteLock {
 		finally {
 			lock.unlock();
 		}
-		
 	}
 	
 	/**
@@ -150,10 +138,8 @@ public class SimpleReadWriteLock {
 	 * @param input input
 	 * @param write true: method is a write operation; false: method is a read operation
 	 */
-	public <I> void synchronizeWithConsumer(Consumer<I> method, I input, boolean write) {
-		
+	public <I> void syncConsumer(Consumer<I> method, I input, boolean write) {
 		SimpleLock lock = write ? writerLock : readerLock;
-
 		lock.lock();
 		try {
 			method.accept(input);
@@ -161,7 +147,6 @@ public class SimpleReadWriteLock {
 		finally {
 			lock.unlock();
 		}
-		
 	}
 	
 	/**
@@ -169,10 +154,8 @@ public class SimpleReadWriteLock {
 	 * @param method Runnable method
 	 * @param write true: method is a write operation; false: method is a read operation
 	 */
-	public void synchronizeWithRunnable(Runnable method, boolean write) {
-		
+	public void syncRunnable(Runnable method, boolean write) {
 		SimpleLock lock = write ? writerLock : readerLock;
-		
 		lock.lock();
 		try {
 			method.run();
@@ -180,7 +163,6 @@ public class SimpleReadWriteLock {
 		finally {
 			lock.unlock();
 		}
-		
 	}
 
 	/**

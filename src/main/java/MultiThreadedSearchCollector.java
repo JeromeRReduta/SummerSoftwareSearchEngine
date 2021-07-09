@@ -1,45 +1,88 @@
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
+import java.util.function.Function;
 
 /**
- * Multi-threaded implementation of the search result collector. Uses a work queue.
+ * Multi-threaded implementation of SearchResultCollector
  * @author JRRed
  *
  */
-public class MultiThreadedSearchCollector extends SearchResultCollector {
-	/** work queue */
+public class MultiThreadedSearchCollector implements SearchResultCollector {
+	/** map of search results, organized by their original query set */
+	private final Map<String, Collection<InvertedIndex.SearchResult>> searchResultMap;
+	
+	/** Search function to use */
+	private final Function<Set<String>, Collection<InvertedIndex.SearchResult>> searchFunc;
+	
+	/** WorkQueue */
 	private final WorkQueue queue;
 	
 	/**
 	 * Constructor
-	 * @param threadSafe thread-safe inverted index
-	 * @param exact whether to use exact or partial search
+	 * @param searchFunc search function to use
 	 * @param queue work queue
 	 */
-	public MultiThreadedSearchCollector(ThreadSafeInvertedIndex threadSafe, boolean exact, WorkQueue queue) {
-		super(threadSafe, exact);
+	public MultiThreadedSearchCollector(Function<Set<String>, Collection<InvertedIndex.SearchResult>> searchFunc, WorkQueue queue) {
+		this.searchResultMap = new TreeMap<>();
+		this.searchFunc = searchFunc;
 		this.queue = queue;
 	}
 	
-	// TODO It is possible to initialize with a normal non thread-safe inverted index because of the inherited constructor
+	@Override
+	public void search(Path path) throws IOException {
+		SearchResultCollector.super.search(path); // SearchResultCollector.super.methodName calls the static methodName() from SearchResultCollector, the "super" of this class's interface
+		queue.finish();
+	}
+	
+	@Override
+	public void searchLine(String line) {
+		queue.execute( new SearchLineTask(line) );
+	}
+	
+	@Override
+	public void outputToFile(Path path) throws IOException {
+		synchronized(searchResultMap) {
+			SearchJsonWriter.asSearchResultMap(searchResultMap, path);
+		}
+	}
 	
 	/**
-	 * General search function. Applies this searcher's search function over a text file
-	 * @param queryPath path of query stems
-	 * @throws IOException in case of IO error
+	 * Class whose sole responsibility is to represent the task: "Search the given ThreadSafeInvertedIndex,
+	 * using the given line of queries, and put the results into the given search result map.
+	 * @author JRRed
+	 *
 	 */
-	@Override
-	public void search(final Path queryPath) throws IOException {
-		try (BufferedReader reader = Files.newBufferedReader(queryPath, StandardCharsets.UTF_8)) {
-			String line;
+	private class SearchLineTask implements Runnable {
+		/** line to search */
+		private final String line;
+		
+		/**
+		 * Constructor
+		 * @param line line to search
+		 */
+		private SearchLineTask(String line) {
+			this.line = line;
+		}
+		
+		@Override
+		public void run() {
+			TreeSet<String> uniqueStems = TextFileStemmer.uniqueStems(line);
+			String searchLine = String.join(" ",  uniqueStems);
 			
-			while ( (line = reader.readLine()) != null ) {
-				queue.execute( new SearchLineTask(line) );
+			synchronized(searchResultMap) {
+				if ( uniqueStems.isEmpty() || searchResultMap.containsKey(searchLine) ) return;
 			}
-			queue.finish();
+			
+			Collection<InvertedIndex.SearchResult> results = searchFunc.apply(uniqueStems);
+			
+			synchronized(searchResultMap) {
+				searchResultMap.put(searchLine,  results);
+			}
 		}
 	}
 }
