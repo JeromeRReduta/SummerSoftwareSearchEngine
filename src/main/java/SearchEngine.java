@@ -76,8 +76,6 @@ public class SearchEngine {
 			ThreadSafeInvertedIndex threadSafe = new ThreadSafeInvertedIndex();
 			WorkQueue queue = new WorkQueue(argMap.getInteger("-threads", WorkQueue.DEFAULT));
 			
-			System.out.println("MAX IS: " + argMap.getInteger("-max", 1));
-			System.out.println("USING PARTIAL SEARCH: " + !argMap.hasFlag("-exact"));
 			return new SearchEngine(
 					argMap.getString("-html"),
 					threadSafe,
