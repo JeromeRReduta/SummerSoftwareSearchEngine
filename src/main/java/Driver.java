@@ -131,7 +131,6 @@ public class Driver {
 			
 			try {
 				searchEngine.outputWordCountsTo(counts);
-				log.info("SUCCESSFULLY OUTPUT WORD COUNTS");
 			}
 			catch(IOException e) {
 				System.err.printf("Error: Error occurred while dealing with path: %s%n", counts);
