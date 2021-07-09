@@ -13,7 +13,7 @@ import java.time.Instant;
  */
 public class Driver {
 
-	// Note: THIS IS PROJECT 3 BRANCH - SWITCH TO MAIN ONE ONCE DESIGN PASSES
+	// Note: THIS IS PROJECT 4 BRANCH - SWITCH TO MAIN ONE ONCE DESIGN PASSES
 	/**
 	 * Initializes the classes necessary based on the provided command-line
 	 * arguments. This includes (but is not limited to) how to build or search an
@@ -27,22 +27,27 @@ public class Driver {
 
 		// Creating objects
 		ArgumentMap argMap = new ArgumentMap(args);
-		SearchEngine searchEngine = new SearchEngine(argMap);
+		SearchEngine searchEngine = SearchEngine.Factory.create(argMap);
 		
-		if (argMap.hasFlag("-text")) { // Collect stems from file(s): argMap.getPath("-text") and store in invertedIndex
-			final Path text = argMap.getPath("-text");
-			
-			try {
-				searchEngine.parseFilesFrom(text);
-			}
-			catch (NullPointerException e) {
-				System.err.printf("Error: path is missing or invalid: %s%n", text);
-			}
-			catch (Exception e) {
-				System.err.printf("Error: Could not build inverted index from path: %s%n", text);
-			}
-			
+		
+		/* turn this section into searchEngine.getStems():
+		 * have a couple different search engines:
+		 * 
+		 * Single-threaded w/ String seed (turned to Path)
+		 * Multi-threaded w/ String seed (turned to Path)
+		 * Web search engine w/ String seed (turned to URL)
+		 * 
+		 * Then when running the searchEngine funcs, just change String to Path/URL as needed
+		 * 
+		 */
+		try {
+			searchEngine.getStems();
 		}
+		catch (Exception e) {
+			System.err.printf( "Could not get stems from path: %s%n", searchEngine.getSeed() );
+		}
+		
+		
 		if (argMap.hasFlag("-query")) {
 			final Path query = argMap.getPath("-query");
 			
@@ -102,6 +107,7 @@ public class Driver {
 		
 		searchEngine.joinQueue();
 
+		searchEngine.joinQueue();
 		// calculate time elapsed and output
 		Duration elapsed = Duration.between(start, Instant.now());
 		double seconds = (double) elapsed.toMillis() / Duration.ofSeconds(1).toMillis();

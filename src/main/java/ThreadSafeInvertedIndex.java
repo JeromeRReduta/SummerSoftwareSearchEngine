@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-
 /**
  * Thread safe version of InvertedIndex.
  * @author JRRed

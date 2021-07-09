@@ -26,7 +26,7 @@ public interface SearchResultCollector {
 	default void search(Path path) throws IOException {
 		try (BufferedReader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
 			String line;
-			
+      
 			while ( (line = reader.readLine()) != null ) {
 				searchLine(line);
 			}

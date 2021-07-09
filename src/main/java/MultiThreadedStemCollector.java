@@ -23,7 +23,7 @@ public class MultiThreadedStemCollector implements WordStemCollector {
 		this.queue = queue;
 	}
 	
-	@Override
+
 	public void collectStemsFrom(Path seed) throws IOException {
 		WordStemCollector.super.collectStemsFrom(seed); // WordStemCollector.super.methodName calls the static methodName() from WordStemCollector, the "super" of this class's interface
 		queue.finish();
