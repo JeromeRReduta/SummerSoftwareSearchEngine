@@ -95,8 +95,6 @@ public class Driver {
 			System.err.printf( "Could not get stems from path: %s%n", searchEngine.getSeed() );
 		}
 		
-
-		
 		if (argMap.hasFlag("-query")) {
 			final Path query = argMap.getPath("-query");
 			
@@ -314,7 +312,7 @@ public class Driver {
 				Instant start = Instant.now();
 				searchEngine.getStems();
 				searchEngine.searchFrom(safeInput);
-				searchEngine.joinQueue();
+			//	searchEngine.joinQueue();
 				printPTag(out, "RESULTS: \n" + searchEngine.outputResultsToWeb(start), indent);
 			}
 			catch (Exception e) {
