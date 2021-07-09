@@ -58,7 +58,7 @@ public class WebCrawler implements StemCrawler {
 				lookup.add(linkName);
 				links.add(linkName);
 				
-				queue.execute(new CrawlURLTask(linkName));
+				queue.execute(new CrawlURLTask(linkName, HtmlFetcher.fetch(linkName, 3)));
 			}
 		}
 	}
@@ -72,6 +72,9 @@ public class WebCrawler implements StemCrawler {
 		
 		/** link name */
 		private final String linkName;
+		
+		/** html block */
+		private String html;
 	
 		/** Inverted Index */
 		private final InvertedIndex localIndex;
@@ -79,15 +82,16 @@ public class WebCrawler implements StemCrawler {
 		/**
 		 * Constructor
 		 * @param linkName link name
+		 * @param html html
 		 */
-		public CrawlURLTask(String linkName) {
+		public CrawlURLTask(String linkName, String html) {
 			this.linkName = linkName;
+			this.html = html;
 			this.localIndex = new InvertedIndex();
 		}
 		
 		@Override
 		public void run() {
-			String html = HtmlFetcher.fetch(linkName, 3);
 			if (html == null) return;
 			html = HtmlCleaner.stripComments(html);
 			html = HtmlCleaner.stripBlockElements(html);
@@ -121,7 +125,7 @@ public class WebCrawler implements StemCrawler {
 		
 		links.add(seed);
 		lookup.add(seed);
-		queue.execute(new CrawlURLTask(seed));
+		queue.execute(new CrawlURLTask(seed, html));
 		
 		queue.finish();
 		
