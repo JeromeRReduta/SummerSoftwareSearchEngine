@@ -3,6 +3,12 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.servlet.ServletHandler;
+
 /**
  * Class responsible for running this project based on the provided command-line
  * arguments. See the README for details.
@@ -12,6 +18,12 @@ import java.time.Instant;
  * @version Summer 2021
  */
 public class Driver {
+	
+	/** Default port */
+	public static final int PORT = 8080;
+	
+	/** Logger */
+	public static Logger log = LogManager.getLogger();
 
 	// Note: THIS IS PROJECT 4 BRANCH - SWITCH TO MAIN ONE ONCE DESIGN PASSES
 	/**
@@ -40,6 +52,34 @@ public class Driver {
 		 * Then when running the searchEngine funcs, just change String to Path/URL as needed
 		 * 
 		 */
+		if (argMap.hasFlag("-server")) {
+			log.info("OH GOD IT'S SERVER TIME");
+			Server server = new Server();
+			ServerConnector connector = new ServerConnector(server);
+			connector.setHost("localhost");
+			connector.setPort(PORT);
+			
+			ServletHandler handler = new ServletHandler();
+			handler.addServletWithMapping(SearchEngineServlet.class, "/search");
+			
+			server.addConnector(connector);
+			server.setHandler(handler);
+			try {
+				server.start();
+				log.info("Server started: {}", server.getState());
+				server.join();
+				log.info("Finished server: {}", server.getState());
+			}
+			catch (Exception e) {
+				System.out.println("Oh no - server time");
+			}
+			
+			
+			return;
+		}
+		
+		
+		
 		try {
 			searchEngine.getStems();
 		}
@@ -47,6 +87,7 @@ public class Driver {
 			System.err.printf( "Could not get stems from path: %s%n", searchEngine.getSeed() );
 		}
 		
+
 		
 		if (argMap.hasFlag("-query")) {
 			final Path query = argMap.getPath("-query");
@@ -109,6 +150,7 @@ public class Driver {
 
 		searchEngine.joinQueue();
 		// calculate time elapsed and output
+		
 		Duration elapsed = Duration.between(start, Instant.now());
 		double seconds = (double) elapsed.toMillis() / Duration.ofSeconds(1).toMillis();
 		System.out.printf("Elapsed: %f seconds%n", seconds);

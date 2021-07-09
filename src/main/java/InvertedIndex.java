@@ -396,5 +396,25 @@ public class InvertedIndex {
 					level + 1));
 			SimpleJsonWriter.indent("}", writer, level);
 		}
+		
+		/**
+		 * {@link #toJson()} as HTML output
+		 * @param writer writer
+		 * @param level base indent level
+		 * @throws IOException in case of IO Error
+		 */
+		public void toHtml(Writer writer, int level) throws IOException {
+			
+			writer.write("{");
+			writer.write( SimpleJsonWriter.indentStringBy("Found at:\t<a href=" + '"' + location + '"' + ">" + location + "</a>,",
+					level + 1));
+			writer.write( SimpleJsonWriter.indentStringBy("Number of matches:\t" + count + ",",
+					level + 1));
+			writer.write( SimpleJsonWriter.indentStringBy("Total word count:\t" + stringCount.get(location),
+					level + 1));
+			writer.write( SimpleJsonWriter.indentStringBy("Score:\t"+ String.format("%.8f", score) + "\n",
+					level + 1));
+			SimpleJsonWriter.indent("}", writer, level);
+		}
 	}
 }

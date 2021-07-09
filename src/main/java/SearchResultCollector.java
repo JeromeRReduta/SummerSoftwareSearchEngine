@@ -3,6 +3,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
@@ -48,6 +49,13 @@ public interface SearchResultCollector {
 	void outputToFile(Path path) throws IOException;
 	
 	/**
+	 * Outputs the SearchResultCollector's search result map in a web-friendly JSON format
+	 * @param start Instant, for timing the search
+	 * @return The SearchResultCollector's search result map in a web-friendly JSON format
+	 */
+	String outputToWeb(Instant start);
+	
+	/**
 	 * Single-threaded implementation of SearchResultCollector
 	 * @author JRRed
 	 *
@@ -80,6 +88,11 @@ public interface SearchResultCollector {
 		@Override
 		public void outputToFile(Path path) throws IOException {
 			SearchJsonWriter.asSearchResultMap(searchResultMap, path);
+		}
+		
+		@Override
+		public String outputToWeb(Instant start) {
+			return SearchJsonWriter.asWebResults(searchResultMap, start);
 		}
 	}
 }

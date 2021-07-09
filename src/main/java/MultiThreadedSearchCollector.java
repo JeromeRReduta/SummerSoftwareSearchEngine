@@ -1,5 +1,6 @@
 import java.io.IOException;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
@@ -48,6 +49,13 @@ public class MultiThreadedSearchCollector implements SearchResultCollector {
 	public void outputToFile(Path path) throws IOException {
 		synchronized(searchResultMap) {
 			SearchJsonWriter.asSearchResultMap(searchResultMap, path);
+		}
+	}
+	
+	@Override
+	public String outputToWeb(Instant start) {
+		synchronized(searchResultMap) {
+			return SearchJsonWriter.asWebResults(searchResultMap, start);
 		}
 	}
 	

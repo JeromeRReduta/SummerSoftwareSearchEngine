@@ -1,1 +1,1 @@
-FOUND: href="https://www.oracle.com/technetwork/java/redist-137594.html"
+FOUND: href="symbols.html"

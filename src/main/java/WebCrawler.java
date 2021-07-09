@@ -1,65 +1,82 @@
 import java.io.IOException;
 import java.net.URL;
-import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import opennlp.tools.stemmer.Stemmer;
 import opennlp.tools.stemmer.snowball.SnowballStemmer;
 
-public class WebCrawler implements WordStemCollector {
-	private static Logger log = LogManager.getLogger();
-	
-	private final SimpleReadWriteLock lock;
-	
+/**
+ * A class whose sole responsibility is to represent a web crawler: something that parses a seed URL and the URLs it holds, and adds its stems to an Inverted Index
+ * @author JRRed
+ *
+ */
+public class WebCrawler implements StemCrawler {
+	/** A set used to keep track of unique links */
 	private final Set<String> lookup;
-	private final List<String> links;
-	private final ThreadSafeInvertedIndex index;
-	private final WorkQueue queue;
-	private final int max;
-	private volatile int current = 0;
 	
-	// TODO: single-threaded implementation for debugging - get workqueue version working after you confirm this one works
+	/** Thread-safe Inverted Index */
+	private final ThreadSafeInvertedIndex index;
+	
+	/** Work queue */
+	private final WorkQueue queue;
+	
+	/** Max num of unique URLS to crawl */
+	private final int max;
+	
+	/**
+	 * Constructor
+	 * @param index Thread-Safe InvertedIndex
+	 * @param queue work queue
+	 * @param max max num of unique urls to crawl
+	 */
 	public WebCrawler(ThreadSafeInvertedIndex index, WorkQueue queue, int max) {
 		this.index = index;
 		this.max = max;
 		this.queue = queue;
-		this.links = new ArrayList<>();
 		this.lookup = new HashSet<>();
-		this.lock = new SimpleReadWriteLock();
 	}
 	
+	/**
+	 * Given a list of URLs, attempts to add each unique URL to the lookup set, until either we get through the list or we reach the max num of links
+	 * @param validLinks list of valid URLs
+	 */
 	public synchronized void crawlUniqueLinks(List<URL> validLinks) {
 		for (URL link : validLinks) {
-			if (links.size() == max) break;
+			if ( lookup.size() == max ) break;
 
-			if (!lookup.contains(link.toString())) {
-				lookup.add(link.toString());
-				links.add(link.toString());
-				
-				queue.execute(new BetterCrawlURLTask( link.toString(), HtmlFetcher.fetch(link, 3) )); // TODO: Take this out of loop? idk
+			if ( !lookup.contains( link.toString() ) ) {
+				lookup.add( link.toString() );
+				queue.execute( new CrawlURLTask( link.toString(), HtmlFetcher.fetch(link, 3) ) );
 			}
 		}
 	}
 	
-	public class BetterCrawlURLTask implements Runnable {
-		
+	/**
+	 * Represents the task: "Parse html, then add unique links (up to the max number of links), then parse the html more,
+	 * then add the parsed html into the local index, then merge the results of the local index into the common one.
+	 * @author JRRed
+	 *
+	 */
+	public class CrawlURLTask implements Runnable {
+		/** link string */
 		private final String linkName;
-		// html may be null
+		
+		/** Entire html block, saved in memory */
 		private String html;
-		private int position;
+		
+		/** An InvertedIndex to store results into */
 		private final InvertedIndex localIndex;
 		
-		
-		public BetterCrawlURLTask(String linkName, String html) {
+		/**
+		 * Constructor
+		 * @param linkName link name
+		 * @param html html block
+		 */
+		public CrawlURLTask(String linkName, String html) {
 			this.linkName = linkName;
 			this.html = html;
-			this.position = 1;
 			this.localIndex = new InvertedIndex();
 		}
 		
@@ -82,6 +99,7 @@ public class WebCrawler implements WordStemCollector {
 			String[] parsedHtml = TextParser.parse(html);
 			
 			Stemmer stemmer = new SnowballStemmer(SnowballStemmer.ALGORITHM.ENGLISH);
+			int position = 1;
 			for (String word : parsedHtml) {
 				String stemmed = stemmer.stem( word.toLowerCase() ).toString();
 				localIndex.add(stemmed, linkName, position++);
@@ -95,17 +113,9 @@ public class WebCrawler implements WordStemCollector {
 		String html = HtmlFetcher.fetch(seed, 3);
 		if (html == null) return;
 		
-		links.add(seed);
 		lookup.add(seed);
-		queue.execute(new BetterCrawlURLTask(seed, html));
+		queue.execute(new CrawlURLTask(seed, html));
 		
 		queue.finish();
-		
 	}
-
-	@Override
-	public void parseFile(Path path) throws IOException {
-		// TODO: add parseFile stuff to here
-	}
-
 }
