@@ -145,9 +145,6 @@ public class SearchEngine {
 		searcher.search(queryPath);
 	}
 	
-	public String outputIndex() {
-		return index.toJson();
-	}
 	/**
 	 * Searches the engine's index with one line of queries. Mainly used for the Web Search Engine (on servers).
 	 * @param line line of queries
