@@ -81,9 +81,8 @@ public class HttpsFetcher {
 		String protocol = url.getProtocol();
 		String host = url.getHost();
 
-		boolean https = protocol != null && protocol.equalsIgnoreCase("http"); // Changed to http to avoid ssl connection reset error as per https://community.smartbear.com/t5/API-Functional-Security-Testing/ERROR-javax-net-ssl-sslexception-connection-reset-when-not-using/td-p/213548
+		boolean https = protocol != null && protocol.equalsIgnoreCase("https"); // changing to http definitely doesn't work
 		int defaultPort = https ? 443 : 80;
-		// bubba
 		int port = url.getPort() < 0 ? defaultPort : url.getPort();
 
 		SocketFactory factory = https ? SSLSocketFactory.getDefault() : SocketFactory.getDefault();
