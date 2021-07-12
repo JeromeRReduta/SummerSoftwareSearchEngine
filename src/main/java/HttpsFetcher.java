@@ -43,9 +43,11 @@ public class HttpsFetcher {
 				InputStreamReader input = new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8);
 				BufferedReader response = new BufferedReader(input);
 		) {
+			
+			System.out.printf("[%n URL: %s%n", url.toString());
 			printGetRequest(request, url);
 			
-			System.out.printf("[%nThread %d - finished printGetRequest()%n", Thread.currentThread().getId());
+			System.out.printf("Thread %d - finished printGetRequest()%n", Thread.currentThread().getId());
 
 			Map<String, List<String>> headers = getHeaderFields(response);
 			System.out.printf("Thread %d - finished getHeaderFields()%n", Thread.currentThread().getId());
