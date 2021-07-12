@@ -138,7 +138,9 @@ public class HttpsFetcher {
 		
 		System.out.printf("Thread %d - Set up map %n", Thread.currentThread().getId());
 
-		while ((line = response.readLine()) != null && !line.isBlank()) {
+		while (response.ready()) { // trying this based on https://stackoverflow.com/questions/5987970/socket-bufferedreader-hangs-at-readline
+			
+			if ((line = response.readLine()) != null && !line.isBlank()) break;
 			System.out.printf("Thread %d - CURRENT LINE: %s%n", Thread.currentThread().getId(), line);
 			String[] split = line.split(":\\s+", 2);
 			
