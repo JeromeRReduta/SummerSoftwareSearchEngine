@@ -135,7 +135,7 @@ public class HtmlFetcher {
 				return String.join("\n", headers.get(CONTENT));
 				*/
 				
-				System.out.println(Thread.currentThread().getId() + " - returning fetch join");
+				//System.out.println(Thread.currentThread().getId() + " - returning fetch join");
 				//return String.join( "\n",  HttpsFetcher.getContent(response) );
 				return String.join( "\n",  headers.get("Content") );
 			}
@@ -145,7 +145,7 @@ public class HtmlFetcher {
 			e.printStackTrace();
 		}
 		
-		System.out.println(Thread.currentThread().getId() + " - returning null");
+		//System.out.println(Thread.currentThread().getId() + " - returning null");
 		return null;
 	}
 
