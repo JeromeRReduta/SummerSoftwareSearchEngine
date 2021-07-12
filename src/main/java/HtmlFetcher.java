@@ -1,10 +1,7 @@
 import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.MalformedURLException;
-import java.net.Socket;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
@@ -102,7 +99,7 @@ public class HtmlFetcher {
 	 */
 	public static String fetch(URL url, int redirects) {
 		if (redirects < 0) return null;
-
+		/*
 		try (
 				Socket socket = HttpsFetcher.openConnection(url);
 				PrintWriter request = new PrintWriter(socket.getOutputStream());
@@ -114,15 +111,21 @@ public class HtmlFetcher {
 			// https://www.edureka.co/community/7308/how-does-java-net-socketexception-connection-reset-happen
 			HttpsFetcher.printGetRequest(request, url); // Note: Not a print-to-console func - DO NOT DELETE
 			
-			System.out.println("After printGetRequest - This is good so far");
+			System.out.println(Thread.currentThread().getId() + " - After printGetRequest - This is good so far");
 			Map<String, List<String>> headers = HttpsFetcher.getHeaderFields(response);
 
 			
-			System.out.println("After getHeaderFields - This is good so far");
+			System.out.println(Thread.currentThread().getId() + " - After getHeaderFields - This is good so far");
+			*/
+		try {
+			Map<String, List<String>> headers = HttpsFetcher.fetchURL(url);
+
+			
+		
 			if ( isRedirect(headers) ) {
 				String newLocation = headers.get(LOCATION).get(0);
 				
-				System.out.println("returning fetch");
+				System.out.println(Thread.currentThread().getId() + " - returning fetch");
 				return fetch(newLocation, redirects - 1);
 			}
 			else if ( isHtml(headers) && getStatusCode(headers) == 200 ) {
@@ -132,16 +135,17 @@ public class HtmlFetcher {
 				return String.join("\n", headers.get(CONTENT));
 				*/
 				
-				System.out.println("returning fetch join");
-				return String.join( "\n",  HttpsFetcher.getContent(response) );
+				System.out.println(Thread.currentThread().getId() + " - returning fetch join");
+				//return String.join( "\n",  HttpsFetcher.getContent(response) );
+				return String.join( "\n",  headers.get("Content") );
 			}
 		}
 		catch (Exception e) {
-			System.err.println("Error - HTMLFetcher - could not fetch html:%n" );
+			System.err.println(Thread.currentThread().getId() + " - Error - HTMLFetcher - could not fetch html:%n" );
 			e.printStackTrace();
 		}
 		
-		System.out.println("returning null");
+		System.out.println(Thread.currentThread().getId() + " - returning null");
 		return null;
 	}
 
