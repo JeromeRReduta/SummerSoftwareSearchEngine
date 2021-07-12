@@ -146,7 +146,7 @@ public class HttpsFetcher {
 			System.out.printf("Thread %d - assert done%n", Thread.currentThread().getId());
 
 			results.putIfAbsent(split[0], new ArrayList<>());
-			System.out.printf("Thread %d - Finished put if Absent: %s%n", Thread.currentThread().getId());
+			System.out.printf("Thread %d - Finished put if Absent:%n", Thread.currentThread().getId());
 			results.get(split[0]).add(split[1]);
 			System.out.printf("Thread %d - value is %s%n", Thread.currentThread().getId(), results.get(split[0]).get(0));
 		}
