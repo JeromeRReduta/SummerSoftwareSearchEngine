@@ -44,12 +44,12 @@ public class HttpsFetcher {
 		) {
 			printGetRequest(request, url);
 			
-			System.out.printf("Thread %d - finished printGetRequest()", Thread.currentThread().getId());
+			System.out.printf("[%nThread %d - finished printGetRequest()%n", Thread.currentThread().getId());
 
 			Map<String, List<String>> headers = getHeaderFields(response);
-			System.out.printf("Thread %d - finished getHeaderFields()", Thread.currentThread().getId());
+			System.out.printf("Thread %d - finished getHeaderFields()%n", Thread.currentThread().getId());
 			List<String> content = getContent(response);
-			System.out.printf("Thread %d - finished getContent()", Thread.currentThread().getId());
+			System.out.printf("Thread %d - finished getContent()%n]%n", Thread.currentThread().getId());
 			headers.put("Content", content);
 
 			return headers;
