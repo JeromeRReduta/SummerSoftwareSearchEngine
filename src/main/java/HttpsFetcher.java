@@ -9,7 +9,6 @@ import java.net.URLConnection;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,15 +43,15 @@ public class HttpsFetcher {
 				BufferedReader response = new BufferedReader(input);
 		) {
 			
-			System.out.printf("[%n URL: %s%n", url.toString());
+			//System.out.printf("[%n URL: %s%n", url.toString());
 			printGetRequest(request, url);
 			
-			System.out.printf("Thread %d - finished printGetRequest()%n", Thread.currentThread().getId());
+			//System.out.printf("Thread %d - finished printGetRequest()%n", Thread.currentThread().getId());
 
 			Map<String, List<String>> headers = getHeaderFields(response);
-			System.out.printf("Thread %d - finished getHeaderFields()%n", Thread.currentThread().getId());
+			//System.out.printf("Thread %d - finished getHeaderFields()%n", Thread.currentThread().getId());
 			List<String> content = getContent(response);
-			System.out.printf("Thread %d - finished getContent()%n]%n", Thread.currentThread().getId());
+			//System.out.printf("Thread %d - finished getContent()%n]%n", Thread.currentThread().getId());
 			headers.put("Content", content);
 
 			return headers;
@@ -126,36 +125,36 @@ public class HttpsFetcher {
 	 * @see URLConnection#getHeaderFields()
 	 */
 	public static Map<String, List<String>> getHeaderFields(BufferedReader response) throws IOException {
-		System.out.printf("Thread %d - ENTERING getHeaderFields()%n", Thread.currentThread().getId());
+		//System.out.printf("Thread %d - ENTERING getHeaderFields()%n", Thread.currentThread().getId());
 		Map<String, List<String>> results = new HashMap<>();
 		
-		System.out.printf("Thread %d - Made results map%n", Thread.currentThread().getId());
+		//System.out.printf("Thread %d - Made results map%n", Thread.currentThread().getId());
 
 		String line = response.readLine();
 		
-		System.out.printf("Thread %d - read line: %s%n", Thread.currentThread().getId(), line);
+		//System.out.printf("Thread %d - read line: %s%n", Thread.currentThread().getId(), line);
 		results.put(null, List.of(line));
 		
-		System.out.printf("Thread %d - Set up map %n", Thread.currentThread().getId());
+		//System.out.printf("Thread %d - Set up map %n", Thread.currentThread().getId());
 
 		while (response.ready()) { // trying this based on https://stackoverflow.com/questions/5987970/socket-bufferedreader-hangs-at-readline
 			// Before: abstractPref was not finishing
 			if ( !((line = response.readLine()) != null && !line.isBlank()) ) break;
-			System.out.printf("Thread %d - CURRENT LINE: %s%n", Thread.currentThread().getId(), line);
+			//System.out.printf("Thread %d - CURRENT LINE: %s%n", Thread.currentThread().getId(), line);
 			String[] split = line.split(":\\s+", 2);
 			
-			System.out.printf("Thread %d - finished split:%n", Thread.currentThread().getId(), Arrays.toString(split));
+			//System.out.printf("Thread %d - finished split:%n", Thread.currentThread().getId(), Arrays.toString(split));
 			assert split.length == 2;
 			
-			System.out.printf("Thread %d - assert done%n", Thread.currentThread().getId());
+			//System.out.printf("Thread %d - assert done%n", Thread.currentThread().getId());
 
 			results.putIfAbsent(split[0], new ArrayList<>());
-			System.out.printf("Thread %d - Finished put if Absent:%n", Thread.currentThread().getId());
+			//System.out.printf("Thread %d - Finished put if Absent:%n", Thread.currentThread().getId());
 			results.get(split[0]).add(split[1]);
-			System.out.printf("Thread %d - value is %s%n", Thread.currentThread().getId(), results.get(split[0]).get(0));
+			//System.out.printf("Thread %d - value is %s%n", Thread.currentThread().getId(), results.get(split[0]).get(0));
 		}
 
-		System.out.printf("Thread %d - RETURNING%n", Thread.currentThread().getId());
+		//System.out.printf("Thread %d - RETURNING%n", Thread.currentThread().getId());
 		return results;
 	}
 
