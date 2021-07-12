@@ -109,11 +109,20 @@ public class HtmlFetcher {
 				InputStreamReader input = new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8);
 				BufferedReader response = new BufferedReader(input);
 		) {
+			
+			// Note: According to below link, might be that socket is closed while there is still writing happening
+			// https://www.edureka.co/community/7308/how-does-java-net-socketexception-connection-reset-happen
 			HttpsFetcher.printGetRequest(request, url); // Note: Not a print-to-console func - DO NOT DELETE
+			
+			System.out.println("After printGetRequest - This is good so far");
 			Map<String, List<String>> headers = HttpsFetcher.getHeaderFields(response);
 
+			
+			System.out.println("After getHeaderFields - This is good so far");
 			if ( isRedirect(headers) ) {
 				String newLocation = headers.get(LOCATION).get(0);
+				
+				System.out.println("returning fetch");
 				return fetch(newLocation, redirects - 1);
 			}
 			else if ( isHtml(headers) && getStatusCode(headers) == 200 ) {
@@ -122,6 +131,8 @@ public class HtmlFetcher {
 				headers.put(CONTENT,  HttpsFetcher.getContent(response));
 				return String.join("\n", headers.get(CONTENT));
 				*/
+				
+				System.out.println("returning fetch join");
 				return String.join( "\n",  HttpsFetcher.getContent(response) );
 			}
 		}
@@ -129,6 +140,8 @@ public class HtmlFetcher {
 			System.err.println("Error - HTMLFetcher - could not fetch html:%n" );
 			e.printStackTrace();
 		}
+		
+		System.out.println("returning null");
 		return null;
 	}
 
