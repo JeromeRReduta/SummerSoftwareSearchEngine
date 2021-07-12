@@ -43,9 +43,13 @@ public class HttpsFetcher {
 				BufferedReader response = new BufferedReader(input);
 		) {
 			printGetRequest(request, url);
+			
+			System.out.printf("Thread %d - finished printGetRequest()", Thread.currentThread().getId());
 
 			Map<String, List<String>> headers = getHeaderFields(response);
+			System.out.printf("Thread %d - finished getHeaderFields()", Thread.currentThread().getId());
 			List<String> content = getContent(response);
+			System.out.printf("Thread %d - finished getContent()", Thread.currentThread().getId());
 			headers.put("Content", content);
 
 			return headers;
