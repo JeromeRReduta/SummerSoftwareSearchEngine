@@ -43,7 +43,7 @@ public class HttpsFetcher {
 				BufferedReader response = new BufferedReader(input);
 		) {
 			
-			//System.out.printf("[%n URL: %s%n", url.toString());
+			System.out.printf("[%n URL: %s%n", url.toString());
 			printGetRequest(request, url);
 			
 //			System.out.printf("Thread %d - finished printGetRequest()%n", Thread.currentThread().getId());
