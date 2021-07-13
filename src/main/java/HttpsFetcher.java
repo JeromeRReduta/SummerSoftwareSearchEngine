@@ -130,16 +130,16 @@ public class HttpsFetcher {
 		
 //		System.out.printf("Thread %d - Made results map%n", Thread.currentThread().getId());
 
-		String line = response.readLine();
+		String line = response.readLine(); // TODO: ERROR IS HERE on abstractPref html link - hangs forever
 		
 //		System.out.printf("Thread %d - read line: %s%n", Thread.currentThread().getId(), line);
 		results.put(null, List.of(line));
 		
 //		System.out.printf("Thread %d - Set up map %n", Thread.currentThread().getId());
 
-		while (response.ready()) { // trying this based on https://stackoverflow.com/questions/5987970/socket-bufferedreader-hangs-at-readline
+		while ((line = response.readLine()) != null && !line.isBlank()) { // trying this based on https://stackoverflow.com/questions/5987970/socket-bufferedreader-hangs-at-readline
 			// Before: abstractPref was not finishing - TODO: check if abstractPref is broken one on next test, too (esp on runtime test)
-			if ( !((line = response.readLine()) != null && !line.isBlank()) ) break;
+			// found it - abstract pref is the problem again
 //			System.out.printf("Thread %d - CURRENT LINE: %s%n", Thread.currentThread().getId(), line);
 			String[] split = line.split(":\\s+", 2);
 			
